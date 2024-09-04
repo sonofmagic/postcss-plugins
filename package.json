@@ -67,6 +67,7 @@
     "only-allow": "^1.2.1",
     "pathe": "^1.1.2",
     "pkg-types": "^1.2.0",
+    "postcss": "^8.4.45",
     "rimraf": "^6.0.1",
     "set-value": "^4.1.0",
     "simple-git": "^3.26.0",
