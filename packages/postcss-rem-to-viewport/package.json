@@ -1,19 +1,29 @@
 {
   "name": "postcss-rem-to-viewport",
   "type": "module",
-  "version": "0.0.0",
-  "description": "postcss-rem-to-viewport",
-  "author": "",
+  "version": "1.0.0",
+  "description": "Convert rem units to viewport units using PostCSS.",
+  "author": "SonOfMagic <qq1324318532@gmail.com>",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/sonofmagic/monorepo-template.git",
+    "url": "git+https://github.com/sonofmagic/postcss-plugins.git",
     "directory": "packages/postcss-rem-to-viewport"
   },
   "bugs": {
-    "url": "https://github.com/sonofmagic/monorepo-template/issues"
+    "url": "https://github.com/sonofmagic/postcss-plugins/issues"
   },
-  "keywords": [],
+  "keywords": [
+    "viewport",
+    "postcss",
+    "postcss-plugin",
+    "postcss-rem",
+    "postcss-pxtorem",
+    "responsive",
+    "css",
+    "rem",
+    "vw"
+  ],
   "sideEffects": false,
   "exports": {
     ".": "./src/index.ts"

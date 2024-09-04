@@ -6,10 +6,10 @@
   "packageManager": "pnpm@9.9.0",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/sonofmagic/monorepo-template.git"
+    "url": "git+https://github.com/sonofmagic/postcss-plugins.git"
   },
   "bugs": {
-    "url": "https://github.com/sonofmagic/monorepo-template/issues"
+    "url": "https://github.com/sonofmagic/postcss-plugins/issues"
   },
   "engines": {
     "node": ">=20.0.0"
