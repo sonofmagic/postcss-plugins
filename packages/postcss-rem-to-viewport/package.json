@@ -1,7 +1,6 @@
 {
   "name": "postcss-rem-to-viewport",
-  "type": "module",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Convert rem units to viewport units using PostCSS.",
   "author": "SonOfMagic <qq1324318532@gmail.com>",
   "license": "MIT",
@@ -18,7 +17,7 @@
     "postcss",
     "postcss-plugin",
     "postcss-rem",
-    "postcss-pxtorem",
+    "rem-to-viewport",
     "responsive",
     "css",
     "rem",
@@ -44,12 +43,12 @@
     "exports": {
       ".": {
         "types": "./dist/index.d.ts",
-        "import": "./dist/index.js",
+        "import": "./dist/index.mjs",
         "require": "./dist/index.cjs"
       }
     },
     "main": "./dist/index.cjs",
-    "module": "./dist/index.js",
+    "module": "./dist/index.mjs",
     "types": "./dist/index.d.ts"
   }
 }
