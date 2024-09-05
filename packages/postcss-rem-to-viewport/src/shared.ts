@@ -40,7 +40,7 @@ export function createRemReplace(
     if (rems < minRemValue) {
       return m
     }
-    const fixedVal = toFixed(rems * rootValue / 100 / 16, unitPrecision)
+    const fixedVal = toFixed(rems * 100 * 16 / rootValue, unitPrecision)
     return fixedVal === 0 ? '0' : fixedVal + transformUnit
   }
 }

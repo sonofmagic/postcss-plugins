@@ -1,6 +1,6 @@
 {
   "name": "postcss-rem-to-viewport",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Convert rem units to viewport units using PostCSS.",
   "author": "SonOfMagic <qq1324318532@gmail.com>",
   "license": "MIT",
