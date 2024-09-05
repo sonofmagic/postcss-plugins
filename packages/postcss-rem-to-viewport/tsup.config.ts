@@ -13,6 +13,6 @@ export default defineConfig({
   },
   // https://github.com/egoist/tsup/pull/1056
   // https://github.com/egoist/tsup/issues?q=cjsInterop
-  // cjsInterop: true,
-  // splitting: true,
+  cjsInterop: true,
+  splitting: true,
 })

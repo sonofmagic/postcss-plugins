@@ -14,4 +14,4 @@ export interface UserDefinedOptions {
   disabled?: boolean
 }
 
-export type PostcssRemToResponsivePixel = PluginCreator<UserDefinedOptions>
+export type PostcssRemToViewport = PluginCreator<UserDefinedOptions>
