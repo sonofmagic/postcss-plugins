@@ -1,6 +1,6 @@
 # postcss-rem-to-viewport
 
-A plugin for [PostCSS](https://github.com/ai/postcss) that generates px or rpx units from rem units.
+A plugin for [PostCSS](https://github.com/ai/postcss) that generates viewport units from rem units.
 
 - Rewrite with `typescript` and well tested.
 - TransformUnit Support `vw` and others !
