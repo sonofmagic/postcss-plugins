@@ -1,8 +1,8 @@
-import type { Declaration, Rule } from 'postcss'
 import { createDefu } from 'defu'
+import type { Declaration, Rule } from 'postcss'
 import { name as packageName } from '../package.json'
-import type { UserDefinedOptions } from './types'
 import { defaultOptions } from './defaults'
+import type { UserDefinedOptions } from './types'
 
 export const postcssPlugin = packageName
 
