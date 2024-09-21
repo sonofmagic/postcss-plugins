@@ -41,9 +41,6 @@ importers:
       '@types/get-value':
         specifier: ^3.0.5
         version: 3.0.5
-      '@types/git-url-parse':
-        specifier: ^9.0.3
-        version: 9.0.3
       '@types/klaw':
         specifier: ^3.0.6
         version: 3.0.6
@@ -1881,9 +1878,6 @@ packages:
 
   '@types/get-value@3.0.5':
     resolution: {integrity: sha512-+o8nw0TId5cDwtdVrhlc8rvzaxbCU+JksFeu8ZunY9vUaODxngXiNceTFj2gkSwGWNRpe3PtaSWt1y0VB71PvA==}
-
-  '@types/git-url-parse@9.0.3':
-    resolution: {integrity: sha512-Wrb8zeghhpKbYuqAOg203g+9YSNlrZWNZYvwxJuDF4dTmerijqpnGbI79yCuPtHSXHPEwv1pAFUB4zsSqn82Og==}
 
   '@types/hast@3.0.4':
     resolution: {integrity: sha512-WPs+bbQw5aCj+x6laNGWLH3wviHtoCv/P3+otBhbOhJgG8qtpdAMlTCxLtsTWA7LH1Oh/bFCHsBn0TPS5m30EQ==}
@@ -7878,8 +7872,6 @@ snapshots:
       '@types/node': 22.5.5
 
   '@types/get-value@3.0.5': {}
-
-  '@types/git-url-parse@9.0.3': {}
 
   '@types/hast@3.0.4':
     dependencies:
