@@ -51,7 +51,7 @@
     "@types/node": "^22.5.5",
     "@types/postcss-pxtorem": "^6.0.3",
     "@types/set-value": "^4.0.3",
-    "@vitest/coverage-v8": "~2.0.5",
+    "@vitest/coverage-v8": "~2.1.0",
     "ci-info": "^4.0.0",
     "cross-env": "^7.0.3",
     "defu": "^6.1.4",
@@ -80,7 +80,7 @@
     "typescript": "^5.6.2",
     "unbuild": "^2.0.0",
     "vite-tsconfig-paths": "^5.0.1",
-    "vitest": "~2.0.5",
+    "vitest": "~2.1.0",
     "yaml": "^2.5.1"
   },
   "publishConfig": {
