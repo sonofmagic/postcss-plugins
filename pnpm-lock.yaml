@@ -61,7 +61,7 @@ importers:
         version: 22.5.5
       '@types/postcss-pxtorem':
         specifier: ^6.0.3
-        version: 6.0.3
+        version: 6.1.0
       '@types/set-value':
         specifier: ^4.0.3
         version: 4.0.3
@@ -1920,8 +1920,8 @@ packages:
   '@types/normalize-package-data@2.4.4':
     resolution: {integrity: sha512-37i+OaWTh9qeK4LSHPsyRC7NahnGotNuZvjLSgcPzblpHB3rrCJxAOgI5gCdKm7coonsaX1Of0ILiTcnZjbfxA==}
 
-  '@types/postcss-pxtorem@6.0.3':
-    resolution: {integrity: sha512-G3nPvxYvDc3xrBn+frsMCTeHqz77grbpUXkCJpkoLXO09LjvTznoiZBWGPmTYB2w2JXutRTkQtlJx2JNEYbMMg==}
+  '@types/postcss-pxtorem@6.1.0':
+    resolution: {integrity: sha512-kHsYTjQgllOfhi3J+xunjMKUZ3APARV/JYeOOcIVLhvPVS162S8Ir8LsZwioFFyYCSnQp+aisupiSaRWVwKyDA==}
 
   '@types/resolve@1.20.2':
     resolution: {integrity: sha512-60BCwRFOZCQhDncwQdxxeOEEkbc5dIMccYLwbxsS4TUNeVECQ/pBJ0j09mrHOl/JJvpRPGwO9SvE4nR2Nb/a4Q==}
@@ -7926,7 +7926,7 @@ snapshots:
 
   '@types/normalize-package-data@2.4.4': {}
 
-  '@types/postcss-pxtorem@6.0.3':
+  '@types/postcss-pxtorem@6.1.0':
     dependencies:
       postcss: 8.4.47
 
