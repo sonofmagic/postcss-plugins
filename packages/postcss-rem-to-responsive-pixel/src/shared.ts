@@ -1,7 +1,7 @@
-import { createDefu } from 'defu'
 import type { Declaration, Rule } from 'postcss'
-import { defaultOptions } from './defaults'
 import type { UserDefinedOptions } from './types'
+import { createDefu } from 'defu'
+import { defaultOptions } from './defaults'
 
 export const postcssPlugin = 'postcss-rem-to-responsive-pixel'
 
@@ -92,11 +92,11 @@ export function createExcludeMatcher(
     }
     return Array.isArray(exclude)
       ? exclude.some((regex) => {
-        if (typeof regex === 'string') {
-          return filepath.includes(regex)
-        }
-        return filepath.match(regex)
-      })
+          if (typeof regex === 'string') {
+            return filepath.includes(regex)
+          }
+          return filepath.match(regex)
+        })
       : exclude(filepath)
   }
 }

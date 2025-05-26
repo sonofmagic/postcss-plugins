@@ -1,4 +1,5 @@
 import type { Rule } from 'postcss'
+import type { PostcssRemToViewport, UserDefinedOptions } from './types'
 import { remRegex } from './regex'
 import {
   blacklistedSelector,
@@ -9,7 +10,6 @@ import {
   getConfig,
   postcssPlugin,
 } from './shared'
-import type { PostcssRemToViewport, UserDefinedOptions } from './types'
 
 const plugin: PostcssRemToViewport = (
   options: UserDefinedOptions = {},

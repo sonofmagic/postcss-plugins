@@ -1,8 +1,8 @@
-import { createDefu } from 'defu'
 import type { Declaration, Rule } from 'postcss'
+import type { UserDefinedOptions } from './types'
+import { createDefu } from 'defu'
 import { name as packageName } from '../package.json'
 import { defaultOptions } from './defaults'
-import type { UserDefinedOptions } from './types'
 
 export const postcssPlugin = packageName
 
@@ -92,11 +92,11 @@ export function createExcludeMatcher(
     }
     return Array.isArray(exclude)
       ? exclude.some((regex) => {
-        if (typeof regex === 'string') {
-          return filepath.includes(regex)
-        }
-        return filepath.match(regex)
-      })
+          if (typeof regex === 'string') {
+            return filepath.includes(regex)
+          }
+          return filepath.match(regex)
+        })
       : exclude(filepath)
   }
 }
