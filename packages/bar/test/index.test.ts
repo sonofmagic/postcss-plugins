@@ -1,7 +1,11 @@
-import { bar } from '@/index'
+import postcss from 'postcss'
+import myPlugin from '@/index'
 
 describe('index', () => {
   it('foo bar', () => {
-    expect(bar()).toBe('foo')
+    const { css } = postcss([
+      myPlugin(),
+    ]).process(`page,:host {}`)
+    expect(css).toMatchSnapshot()
   })
 })

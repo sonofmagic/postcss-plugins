@@ -1,17 +1,16 @@
-export function bar() {
-  return 'foo'
-}
-// import __cjs_url__ from 'url';
-// import __cjs_path__ from 'path';
-// import __cjs_mod__ from 'module';
-// const __filename = __cjs_url__.fileURLToPath(import.meta.url);
-// const __dirname = __cjs_path__.dirname(__filename);
-// const require = __cjs_mod__.createRequire(import.meta.url);
-export function getDirname() {
-  return __dirname
+import type { PluginCreator } from 'postcss'
+
+const plugin: PluginCreator<object> = () => {
+  return {
+    postcssPlugin: 'postcss-add-wx-root-content',
+    Rule(rule) {
+      if (rule.selectors.includes(':host')) {
+        rule.selectors = [...rule.selectors, 'wx-root-content']
+      }
+    },
+  }
 }
 
-export enum xx {
-  id,
-  dd,
-}
+plugin.postcss = true
+
+export default plugin
