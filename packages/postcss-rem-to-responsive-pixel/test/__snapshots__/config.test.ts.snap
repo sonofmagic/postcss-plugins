@@ -8,6 +8,7 @@ exports[`config > getConfig default 1`] = `
   ],
   "mediaQuery": false,
   "minRemValue": 0,
+  "processorStage": "Once",
   "propList": [
     "font",
     "font-size",
@@ -30,6 +31,7 @@ exports[`config > getConfig with wild prop 1`] = `
   ],
   "mediaQuery": false,
   "minRemValue": 0,
+  "processorStage": "Once",
   "propList": [
     "*",
   ],

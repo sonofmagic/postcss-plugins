@@ -11,4 +11,5 @@ export const defaultOptions: Required<UserDefinedOptions> = {
   exclude: [/node_modules/i],
   transformUnit: 'px',
   disabled: false,
+  processorStage: 'Once',
 }

@@ -1,4 +1,4 @@
-import type { Rule } from 'postcss'
+import type { Root, Rule } from 'postcss'
 import type { PostcssRemToResponsivePixel, UserDefinedOptions } from './types'
 import { remRegex } from './regex'
 import {
@@ -26,6 +26,7 @@ const plugin: PostcssRemToResponsivePixel = (
     transformUnit,
     unitPrecision,
     disabled,
+    processorStage,
   } = getConfig(options)
   if (disabled) {
     return {
@@ -37,7 +38,7 @@ const plugin: PostcssRemToResponsivePixel = (
 
   return {
     postcssPlugin,
-    Once(css) {
+    [processorStage]: (css: Root) => {
       const source = css.source
       const input = source!.input
       const filePath = input.file as string

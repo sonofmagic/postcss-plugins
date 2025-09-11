@@ -11,6 +11,7 @@ export interface UserDefinedOptions {
   exclude?: (string | RegExp)[] | ((filePath: string) => boolean)
   transformUnit?: 'px' | 'rpx'
   disabled?: boolean
+  processorStage?: 'Once' | 'OnceExit'
 }
 
 export type PostcssRemToResponsivePixel = PluginCreator<UserDefinedOptions>
