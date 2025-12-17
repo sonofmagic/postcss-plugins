@@ -33,3 +33,6 @@ yarn-error.log*
 .turbo
 
 dist
+vite.config.ts.timestamp-*.mjs
+config.ts.timestamp-*.mjs
+.vite-inspect
