@@ -9,7 +9,7 @@ describe('remToVw', () => {
     const input
       = 'h1 { margin: 0 0 20px; font-size: 2rem; line-height: 1.2; letter-spacing: 0.0625rem; }'
     const output
-      = 'h1 { margin: 0 0 20px; font-size: 8.533333333333335vw; line-height: 1.2; letter-spacing: 0.2666666666666667vw; }'
+      = 'h1 { margin: 0 0 20px; font-size: 8.533333333333333vw; line-height: 1.2; letter-spacing: 0.2666666666666669vw; }'
     const processed = postcss(remToVw()).process(input).css
 
     expect(processed).toBe(output)
@@ -45,7 +45,7 @@ describe('remToVw', () => {
 
   it('should handle < 1 values and values without a leading 0', () => {
     const rules = '.rule { margin: 0.5px .03125rem -0.0125rem -.2em }'
-    const expected = '.rule { margin: 0.5px 0.1333333333333334vw -0.0533333333333333vw -.2em }'
+    const expected = '.rule { margin: 0.5px 0.1333333333333336vw -0.0533333333333336vw -.2em }'
     const options = {
       propList: ['margin'],
     }
@@ -72,7 +72,7 @@ describe('remToVw', () => {
     const input
       = 'h1 { margin: 0 0 20px; font-size: 2rem; line-height: 1.2; letter-spacing: 0.0625rem; }'
     const output
-      = 'h1 { margin: 0 0 20px; font-size: 8.533333333333335rpx; line-height: 1.2; letter-spacing: 0.2666666666666667rpx; }'
+      = 'h1 { margin: 0 0 20px; font-size: 8.533333333333333rpx; line-height: 1.2; letter-spacing: 0.2666666666666669rpx; }'
     const processed = postcss(
       remToVw({
         transformUnit: 'rpx',
@@ -80,6 +80,31 @@ describe('remToVw', () => {
     ).process(input).css
 
     expect(processed).toBe(output)
+  })
+
+  it('should resolve rootValue from input function', () => {
+    const input = 'h1 { font-size: 1rem; }'
+    const output = 'h1 { font-size: 5vw; }'
+    const processed = postcss(
+      remToVw({
+        rootValue: (input) => {
+          return input.file?.endsWith('design.css') ? 320 : 375
+        },
+      }),
+    ).process(input, { from: '/src/design.css' }).css
+
+    expect(processed).toBe(output)
+  })
+
+  it('should skip excluded files', () => {
+    const input = 'h1 { font-size: 1rem; }'
+    const processed = postcss(
+      remToVw({
+        exclude: ['skip.css'],
+      }),
+    ).process(input, { from: '/src/skip.css' }).css
+
+    expect(processed).toBe(input)
   })
 })
 
@@ -91,7 +116,7 @@ describe('value parsing', () => {
     const rules
       = '.rule { content: \'1rem\'; font-family: "1rem"; font-size: 1rem; }'
     const expected
-      = '.rule { content: \'1rem\'; font-family: "1rem"; font-size: 4.2666666666666675vw; }'
+      = '.rule { content: \'1rem\'; font-family: "1rem"; font-size: 4.266666666666667vw; }'
     const processed = postcss(remToVw(options)).process(rules).css
 
     expect(processed).toBe(expected)
@@ -102,7 +127,7 @@ describe('value parsing', () => {
       propList: ['*'],
     }
     const rules = '.rule { background: url(1rem.jpg); font-size: 1rem; }'
-    const expected = '.rule { background: url(1rem.jpg); font-size: 4.2666666666666675vw; }'
+    const expected = '.rule { background: url(1rem.jpg); font-size: 4.266666666666667vw; }'
     const processed = postcss(remToVw(options)).process(rules).css
 
     expect(processed).toBe(expected)
@@ -115,7 +140,7 @@ describe('value parsing', () => {
     const rules
       = '.rule { margin: 0.75rem calc(100% - 14REM); height: calc(100% - 1.25rem); font-size: 12Rem; line-height: 1rem; }'
     const expected
-      = '.rule { margin: 3.2vw calc(100% - 14REM); height: calc(100% - 5.333333333333332vw); font-size: 12Rem; line-height: 4.2666666666666675vw; }'
+      = '.rule { margin: 3.2vw calc(100% - 14REM); height: calc(100% - 5.333333333333333vw); font-size: 12Rem; line-height: 4.266666666666667vw; }'
     const processed = postcss(remToVw(options)).process(rules).css
 
     expect(processed).toBe(expected)
@@ -152,7 +177,7 @@ describe('propList', () => {
     const rules
       = '.rule { font-size: 1rem; margin: 1rem; margin-left: 0.5rem; padding: 0.5rem; padding-right: 1rem }'
     const expected
-      = '.rule { font-size: 4.2666666666666675vw; margin: 4.2666666666666675vw; margin-left: 0.5rem; padding: 2.1333333333333337vw; padding-right: 4.2666666666666675vw }'
+      = '.rule { font-size: 4.266666666666667vw; margin: 4.266666666666667vw; margin-left: 0.5rem; padding: 2.1333333333333337vw; padding-right: 4.266666666666667vw }'
     const options = {
       propList: ['font', /^margin$/, 'pad'],
     }
@@ -165,7 +190,7 @@ describe('propList', () => {
     const rules
       = '.rule { font-size: 1rem; margin: 1rem; margin-left: 0.5rem; padding: 0.5rem; padding-right: 1rem }'
     const expected
-      = '.rule { font-size: 1rem; margin: 4.2666666666666675vw; margin-left: 0.5rem; padding: 0.5rem; padding-right: 1rem }'
+      = '.rule { font-size: 1rem; margin: 4.266666666666667vw; margin-left: 0.5rem; padding: 0.5rem; padding-right: 1rem }'
     const options = {
       propList: [/^margin$/],
     }
@@ -176,7 +201,7 @@ describe('propList', () => {
 
   it('should replace all properties when white list is wildcard', () => {
     const rules = '.rule { margin: 1rem; font-size: 0.9375rem }'
-    const expected = '.rule { margin: 4.2666666666666675vw; font-size: 4vw }'
+    const expected = '.rule { margin: 4.266666666666667vw; font-size: 4vw }'
     const options = {
       propList: ['*'],
     }
@@ -202,7 +227,7 @@ describe('selectorBlackList', () => {
     const rules
       = 'body { font-size: 1rem; } .class-body$ { font-size: 16rem; } .simple-class { font-size: 1rem; }'
     const expected
-      = 'body { font-size: 4.2666666666666675vw; } .class-body$ { font-size: 16rem; } .simple-class { font-size: 4.2666666666666675vw; }'
+      = 'body { font-size: 4.266666666666667vw; } .class-body$ { font-size: 16rem; } .simple-class { font-size: 4.266666666666667vw; }'
     const options = {
       selectorBlackList: ['body$'],
     }
@@ -215,7 +240,7 @@ describe('selectorBlackList', () => {
     const rules
       = 'body { font-size: 16rem; } .class-body { font-size: 1rem; } .simple-class { font-size: 1rem; }'
     const expected
-      = 'body { font-size: 16rem; } .class-body { font-size: 4.2666666666666675vw; } .simple-class { font-size: 4.2666666666666675vw; }'
+      = 'body { font-size: 16rem; } .class-body { font-size: 4.266666666666667vw; } .simple-class { font-size: 4.266666666666667vw; }'
     const options = {
       selectorBlackList: [/^body$/],
     }
@@ -240,7 +265,30 @@ describe('replace', () => {
 describe('mediaQuery', () => {
   it('should replace rem in media queries', () => {
     const rules = '@media (min-width: 31.25rem) { .rule { font-size: 1rem } }'
-    const expected = '@media (min-width: 133.33333333333337vw) { .rule { font-size: 4.2666666666666675vw } }'
+    const expected = '@media (min-width: 133.33333333333334vw) { .rule { font-size: 4.266666666666667vw } }'
+    const options = {
+      mediaQuery: true,
+    }
+    const processed = postcss(remToVw(options)).process(rules).css
+
+    expect(processed).toBe(expected)
+  })
+
+  it('should leave media params unchanged when mediaQuery is false', () => {
+    const rules
+      = '@media (min-width: 10rem) { .rule { font-size: 1rem } }'
+    const expected
+      = '@media (min-width: 10rem) { .rule { font-size: 4.266666666666667vw } }'
+    const processed = postcss(remToVw()).process(rules).css
+
+    expect(processed).toBe(expected)
+  })
+
+  it('should ignore media params without rem values', () => {
+    const rules
+      = '@media (min-width: 100px) { .rule { font-size: 1rem } }'
+    const expected
+      = '@media (min-width: 100px) { .rule { font-size: 4.266666666666667vw } }'
     const options = {
       mediaQuery: true,
     }
@@ -255,7 +303,7 @@ describe('minRemValue', () => {
     const rules
       = '.rule { border: 0.0625rem solid #000; font-size: 1rem; margin: 0.0625rem 0.625rem; }'
     const expected
-      = '.rule { border: 0.0625rem solid #000; font-size: 4.2666666666666675vw; margin: 0.0625rem 2.666666666666666vw; }'
+      = '.rule { border: 0.0625rem solid #000; font-size: 4.266666666666667vw; margin: 0.0625rem 2.666666666666667vw; }'
     const options = {
       propList: ['*'],
       minRemValue: 0.5,

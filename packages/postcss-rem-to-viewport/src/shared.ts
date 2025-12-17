@@ -21,9 +21,14 @@ export function getConfig(options?: UserDefinedOptions) {
 }
 
 export function toFixed(number: number, precision: number) {
-  const multiplier = 10 ** (precision + 1)
-  const wholeNumber = Math.floor(number * multiplier)
-  return (Math.round(wholeNumber / 10) * 10) / multiplier
+  if (number === 0) {
+    return 0
+  }
+  const multiplier = 10 ** precision
+  const sign = Math.sign(number)
+  const absNumber = Math.abs(number)
+  const rounded = Math.round((absNumber + Number.EPSILON) * multiplier) / multiplier
+  return sign * rounded
 }
 
 export function createRemReplace(

@@ -238,10 +238,33 @@ describe('replace', () => {
 })
 
 describe('mediaQuery', () => {
+  it('should ignore media queries when disabled', () => {
+    const rules = '@media (min-width: 31.25rem) { .rule { font-size: 1rem } }'
+    const expected
+      = '@media (min-width: 31.25rem) { .rule { font-size: 16px } }'
+    const processed = postcss(remToPx()).process(rules).css
+
+    expect(processed).toBe(expected)
+  })
+
   it('should replace rem in media queries', () => {
     const rules = '@media (min-width: 31.25rem) { .rule { font-size: 1rem } }'
     const expected = '@media (min-width: 500px) { .rule { font-size: 16px } }'
     const options = {
+      mediaQuery: true,
+    }
+    const processed = postcss(remToPx(options)).process(rules).css
+
+    expect(processed).toBe(expected)
+  })
+
+  it('should skip media queries without rem while still transforming declarations', () => {
+    const rules
+      = '@media (min-width: 500px) { .rule { font-size: 1rem; margin: 1rem; } }'
+    const expected
+      = '@media (min-width: 500px) { .rule { font-size: 16px; margin: 16px; } }'
+    const options = {
+      propList: ['*'],
       mediaQuery: true,
     }
     const processed = postcss(remToPx(options)).process(rules).css
@@ -274,6 +297,37 @@ describe('pxToRem', () => {
     const processed = postcss(remToPx()).process(toRems).css
 
     expect(processed).toBe(input)
+  })
+})
+
+describe('exclude and rootValue function', () => {
+  it('should ignore files that match the exclude matcher', () => {
+    const input = '.rule { font-size: 1rem }'
+    const options = {
+      exclude: ['exclude-me.css'],
+      propList: ['*'],
+    }
+    const processed = postcss(remToPx(options)).process(input, {
+      from: '/tmp/exclude-me.css',
+    }).css
+
+    expect(processed).toBe(input)
+  })
+
+  it('should use dynamic rootValue functions based on input file path', () => {
+    const input = '.rule { font-size: 1rem }'
+    const processed = postcss(
+      remToPx({
+        propList: ['*'],
+        rootValue: (css) => {
+          return css.from?.includes('mobile') ? 10 : 16
+        },
+      }),
+    ).process(input, {
+      from: '/project/mobile.css',
+    }).css
+
+    expect(processed).toBe('.rule { font-size: 10px }')
   })
 })
 

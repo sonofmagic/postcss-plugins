@@ -35,6 +35,7 @@
     "build": "tsup",
     "test": "vitest run",
     "test:dev": "vitest",
+    "bench": "vitest bench",
     "release": "pnpm publish",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"
