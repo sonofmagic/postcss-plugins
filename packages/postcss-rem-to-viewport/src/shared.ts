@@ -1,6 +1,5 @@
 import type { UserDefinedOptions } from './types'
 import {
-  blacklistedSelector,
   createExcludeMatcher,
   createPropListMatcher,
   declarationExists,
@@ -24,21 +23,47 @@ export function createRemReplace(
   minRemValue: number,
   transformUnit = 'vw',
 ) {
+  const factor = (100 * 16) / rootValue
+  const multiplier = 10 ** unitPrecision
+
   return function (m: string, $1: string) {
     if (!$1) {
       return m
     }
-    const rems = Number.parseFloat($1)
+    const rems = Number($1)
     if (rems < minRemValue) {
       return m
     }
-    const fixedVal = toFixed(rems * 100 * 16 / rootValue, unitPrecision)
+
+    const value = rems * factor
+    if (value === 0) {
+      return '0'
+    }
+
+    const fixedVal = unitPrecision === 0
+      ? Math.round(value)
+      : Math.round((value + Number.EPSILON) * multiplier) / multiplier
+
     return fixedVal === 0 ? '0' : fixedVal + transformUnit
   }
 }
 
+export function blacklistedSelector(
+  blacklist: readonly (string | RegExp)[],
+  selector?: string,
+): boolean | undefined {
+  if (typeof selector !== 'string') {
+    return undefined
+  }
+  return blacklist.some((rule) => {
+    if (typeof rule === 'string') {
+      return selector.includes(rule)
+    }
+    return Boolean(selector.match(rule))
+  })
+}
+
 export {
-  blacklistedSelector,
   createExcludeMatcher,
   createPropListMatcher,
   declarationExists,

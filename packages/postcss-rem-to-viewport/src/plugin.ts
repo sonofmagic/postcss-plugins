@@ -33,6 +33,7 @@ const plugin: PostcssRemToViewport = (
   }
   const satisfyPropList = createPropListMatcher(propList)
   const excludeFn = createExcludeMatcher(exclude)
+  const hasSelectorBlacklist = selectorBlackList.length > 0
 
   return {
     postcssPlugin,
@@ -53,28 +54,46 @@ const plugin: PostcssRemToViewport = (
         transformUnit,
       )
 
+      const selectorBlacklistCache: WeakMap<Rule, boolean> | undefined = hasSelectorBlacklist
+        ? new WeakMap()
+        : undefined
+
       css.walkDecls((decl) => {
-        const rule = decl.parent as Rule
         if (
           !decl.value.includes('rem')
           || !satisfyPropList(decl.prop)
-          || blacklistedSelector(selectorBlackList, rule.selector)
         ) {
           return
         }
 
+        const rule = decl.parent as Rule
+        if (selectorBlacklistCache) {
+          const cached = selectorBlacklistCache.get(rule)
+          const isBlacklisted = cached ?? Boolean(blacklistedSelector(selectorBlackList, rule.selector))
+          if (cached === undefined) {
+            selectorBlacklistCache.set(rule, isBlacklisted)
+          }
+          if (isBlacklisted) {
+            return
+          }
+        }
+
         const value = decl.value.replace(remRegex, pxReplace)
 
-        if (declarationExists(rule, decl.prop, value)) {
+        if (value === decl.value) {
+          return
+        }
+
+        if ((rule.nodes?.length ?? 0) > 1 && declarationExists(rule, decl.prop, value)) {
           return
         }
 
         if (replace) {
           decl.value = value
+          return
         }
-        else {
-          decl.cloneAfter({ value })
-        }
+
+        decl.cloneAfter({ value })
       })
 
       css.walkAtRules((atRule) => {
