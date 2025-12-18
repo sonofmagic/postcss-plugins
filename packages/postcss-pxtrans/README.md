@@ -183,6 +183,8 @@ RN eject:
 - `onePxTransform`: `boolean`, whether to convert `1px` (Harmony still converts `PX` to `ch`)
 - `exclude`: `(filePath?: string) => boolean`, skip the whole file when matched
 
+> Note: internally this plugin reuses utilities from `postcss-plugin-shared` for prop matching and unit regex building.
+
 ## Common recipes
 
 ### Dynamic `designWidth` per file

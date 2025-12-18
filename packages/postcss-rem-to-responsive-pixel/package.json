@@ -36,6 +36,7 @@
     "tailwindcss",
     "preset"
   ],
+  "sideEffects": false,
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -69,6 +70,9 @@
     "release": "pnpm publish",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"
+  },
+  "peerDependencies": {
+    "postcss": "^8"
   },
   "dependencies": {
     "postcss-plugin-shared": "workspace:^"

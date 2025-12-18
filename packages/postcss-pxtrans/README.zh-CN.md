@@ -183,6 +183,8 @@ RN eject：
 - `onePxTransform`: `boolean`，是否转换 1px（Harmony 下 `PX` 仍转 `ch`）
 - `exclude`: `(filePath?: string) => boolean`，命中直接跳过整文件
 
+> 说明：插件内部复用了 `postcss-plugin-shared` 的通用能力（propList 匹配、单位正则构建等）。
+
 ## 常见配置场景
 
 ### 设计稿宽度按文件动态调整

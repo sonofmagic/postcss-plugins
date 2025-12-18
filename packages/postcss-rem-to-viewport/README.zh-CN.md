@@ -6,6 +6,7 @@
 
 - 使用 `TypeScript` 重写并覆盖测试
 - `transformUnit` 支持 `vw` 等其他单位
+- 插件内部复用了 `postcss-plugin-shared` 的通用能力。
 
 ## 安装
 
@@ -38,7 +39,7 @@ module.exports = {
 
 ```js
 const defaultOptions = {
-  rootValue: 375,
+  rootValue: 375, // number | (input) => number
   unitPrecision: 16,
   selectorBlackList: [],
   propList: ['font', 'font-size', 'line-height', 'letter-spacing'],
@@ -53,7 +54,7 @@ const defaultOptions = {
 
 ### `rootValue`
 
-类型：`number`
+类型：`number | (input) => number`
 默认值：`375`
 
 根元素字体大小（换算基数），也可以设置为 `750` 或其他设计稿宽度。

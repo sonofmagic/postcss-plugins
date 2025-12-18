@@ -6,6 +6,7 @@ English | [简体中文](./README.zh-CN.md)
 
 - Rewrite with `typescript` and well tested.
 - TransformUnit Support `vw` and others !
+- Internally reuses shared utilities from `postcss-plugin-shared`.
 
 ## Install
 
@@ -37,7 +38,7 @@ Default:
 
 ```js
 const defaultOptions = {
-  rootValue: 375,
+  rootValue: 375, // number | (input) => number
   unitPrecision: 16,
   selectorBlackList: [],
   propList: ['font', 'font-size', 'line-height', 'letter-spacing'],
@@ -52,7 +53,7 @@ const defaultOptions = {
 
 ### rootValue
 
-Type: `number`
+Type: `number | (input) => number`
 Default: `375`
 
 The root element font size. can be `750` or other

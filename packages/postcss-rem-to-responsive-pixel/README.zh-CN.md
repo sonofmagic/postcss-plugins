@@ -6,6 +6,7 @@
 
 - 使用 `TypeScript` 重写并覆盖测试
 - `transformUnit` 支持 `px` 和 `rpx`
+- 插件内部复用了 `postcss-plugin-shared` 的通用能力。
 
 > 如果你仍在使用 `postcss@7.x`，请使用 `postcss-rem-to-responsive-pixel@5.x`（参见 `v6` 的 breaking changes：`./v6.md`）。
 
@@ -80,7 +81,7 @@ h1 {
 
 ```js
 const defaultOptions = {
-  rootValue: 16,
+  rootValue: 16, // number | (input) => number
   unitPrecision: 5,
   selectorBlackList: [],
   propList: ['font', 'font-size', 'line-height', 'letter-spacing'],
@@ -90,12 +91,13 @@ const defaultOptions = {
   exclude: [/node_modules/i],
   transformUnit: 'px',
   disabled: false,
+  processorStage: 'Once',
 }
 ```
 
 ### `rootValue`
 
-类型：`number`
+类型：`number | (input) => number`
 
 根元素字体大小（换算基数）。
 
@@ -116,6 +118,13 @@ const defaultOptions = {
 类型：`(string | RegExp)[]`
 
 命中这些选择器时保持 rem 不变。
+
+## processorStage
+
+类型：`'Once' | 'OnceExit'`
+默认值：`'Once'`
+
+控制插件运行的 PostCSS 阶段。如果需要在其他插件处理完成后再执行，可以设置为 `OnceExit`。
 
 ## replace
 

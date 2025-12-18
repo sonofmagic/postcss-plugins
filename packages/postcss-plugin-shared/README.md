@@ -42,10 +42,14 @@ This package declares `postcss` as a peer dependency (`^8`).
 Entry: `packages/postcss-plugin-shared/src/index.ts`
 
 - `mergeOptions`: option merging based on `defu` (arrays use “override” strategy)
+- `createConfigGetter`: create a `getConfig(options?)` helper based on `mergeOptions`
 - `toFixed`: stable rounding helper (avoids `-0`/precision noise)
+- `createUnitRegex`: build a unit regex with configurable skip rules
 - `remRegex` / `pxRegex`: shared regexes for rem/px replacement (skips string literals, `url()`, `var()`)
 - `blacklistedSelector`: selector blacklist matcher (string includes / RegExp match)
+- `maybeBlacklistedSelector`: like `blacklistedSelector`, but returns `undefined` for non-string selectors
 - `createPropListMatcher`: builds a property matcher from `propList` (supports `*`)
+- `createAdvancedPropListMatcher`: advanced prop matcher (wildcards + negation) for `string[]`
 - `createExcludeMatcher`: builds an exclude matcher from `exclude` (array or function)
 - `declarationExists`: checks whether a rule/decls already contains the same `prop/value` to avoid duplicates
 
@@ -71,6 +75,20 @@ const resolved = mergeOptions<Options>({ propList: ['font-size'] }, defaults)
 // resolved.propList === ['font-size']
 ```
 
+### `createConfigGetter(defaults)`
+
+Creates a strongly-typed `getConfig(options?)` function:
+
+```ts
+import { createConfigGetter } from 'postcss-plugin-shared'
+
+const defaultOptions = { rootValue: 16, propList: ['*'] as string[] }
+export const getConfig = createConfigGetter(defaultOptions)
+
+getConfig() // => defaultOptions
+getConfig({ rootValue: 10 }) // => merged result
+```
+
 ### `toFixed(number, precision)`
 
 Stable rounding helper:
@@ -84,6 +102,21 @@ import { toFixed } from 'postcss-plugin-shared'
 
 toFixed(1.005, 2) // 1.01
 toFixed(0, 5) // 0
+```
+
+### `createUnitRegex(options)`
+
+Creates a global regex for unit replacement with configurable “skip” rules.
+
+Notes:
+
+- capture group 1 is the numeric portion
+- defaults to skipping quoted strings, `url(...)` and `var(...)`
+
+```ts
+import { createUnitRegex } from 'postcss-plugin-shared'
+
+const pxLike = createUnitRegex({ units: ['px', 'rpx'], ignoreCase: true })
 ```
 
 ### `remRegex` / `pxRegex`
@@ -119,6 +152,10 @@ blacklistedSelector(['.ignore', /^\.no-/], '.ignore .a') // true
 blacklistedSelector(['.ignore', /^\.no-/], '.no-test') // true
 ```
 
+### `maybeBlacklistedSelector(blacklist, selector?)`
+
+Same matching logic as `blacklistedSelector`, but returns `undefined` when `selector` is not a string.
+
 ### `createPropListMatcher(propList)`
 
 Builds a matcher `(prop: string) => boolean` to decide whether a CSS property should be processed.
@@ -137,6 +174,25 @@ const match = createPropListMatcher(['font', /height$/])
 match('font-size') // true (contains 'font')
 match('line-height') // true (/height$/)
 match('color') // false
+```
+
+### `createAdvancedPropListMatcher(propList)`
+
+Advanced property matcher for `string[]` `propList`, compatible with `postcss-pxtrans` patterns:
+
+- `*` matches all properties
+- `foo` exact match
+- `foo*` prefix match
+- `*foo` suffix match
+- `*foo*` contains match
+- `!pattern` negates (deny-list)
+
+```ts
+import { createAdvancedPropListMatcher } from 'postcss-plugin-shared'
+
+const match = createAdvancedPropListMatcher(['*', '!border', 'font*', '*height'])
+match('font-size') // true
+match('border') // false
 ```
 
 ### `createExcludeMatcher(exclude)`

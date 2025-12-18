@@ -6,6 +6,7 @@ English | [简体中文](./README.zh-CN.md)
 
 - Rewrite with `typescript` and well tested.
 - TransformUnit Support `px` and `rpx`!
+- Internally reuses shared utilities from `postcss-plugin-shared`.
 
 > If you still use `postcss@7.x`, you should use `postcss-rem-to-responsive-pixel@5.x` > [See version 6 breaking changes](./v6.md)
 
@@ -82,7 +83,7 @@ Default:
 
 ```js
 const defaultOptions = {
-  rootValue: 16,
+  rootValue: 16, // number | (input) => number
   unitPrecision: 5,
   selectorBlackList: [],
   propList: ['font', 'font-size', 'line-height', 'letter-spacing'],
@@ -91,13 +92,14 @@ const defaultOptions = {
   minRemValue: 0,
   exclude: [/node_modules/i],
   transformUnit: 'px',
-  disabled: false
+  disabled: false,
+  processorStage: 'Once',
 }
 ```
 
 ### rootValue
 
-Type: `number`
+Type: `number | (input) => number`
 
 The root element font size.
 
@@ -118,6 +120,13 @@ The properties that can change from rem to px.
 Type: `(string | RegExp)[]`
 
 The selectors to ignore and leave as rem.
+
+## processorStage
+
+Type: `'Once' | 'OnceExit'`
+Default: `'Once'`
+
+Controls which PostCSS stage the plugin runs at. Use `OnceExit` if you need it to run after other plugins.
 
 ## replace
 

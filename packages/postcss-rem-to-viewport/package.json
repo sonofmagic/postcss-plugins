@@ -40,6 +40,9 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"
   },
+  "peerDependencies": {
+    "postcss": "^8"
+  },
   "dependencies": {
     "postcss-plugin-shared": "workspace:^"
   },

@@ -42,10 +42,14 @@ pnpm add postcss-plugin-shared
 入口：`packages/postcss-plugin-shared/src/index.ts`
 
 - `mergeOptions`：基于 `defu` 的 options 合并工具（数组采用“覆盖”策略）
+- `createConfigGetter`：基于 `mergeOptions` 生成 `getConfig(options?)` 的工厂函数
 - `toFixed`：稳定的小数处理（避免 `-0`/精度噪声）
+- `createUnitRegex`：可配置单位/跳过规则的通用单位正则工厂
 - `remRegex` / `pxRegex`：用于替换 rem/px 的通用正则（排除字符串字面量、`url()`、`var()`）
 - `blacklistedSelector`：选择器黑名单匹配（string 包含 / RegExp 匹配）
+- `maybeBlacklistedSelector`：与 `blacklistedSelector` 逻辑一致，但 selector 非字符串时返回 `undefined`
 - `createPropListMatcher`：根据 propList 生成属性匹配函数（支持 `*` 通配）
+- `createAdvancedPropListMatcher`：支持高级 `propList` 语法的属性匹配器（string[]，通配符 + 取反）
 - `createExcludeMatcher`：根据 exclude 生成文件路径排除函数（数组或函数）
 - `declarationExists`：用于检测某 rule/decls 中是否已存在相同 `prop/value`，避免重复注入
 
@@ -71,6 +75,17 @@ const resolved = mergeOptions<Options>({ propList: ['font-size'] }, defaults)
 // resolved.propList === ['font-size']
 ```
 
+### `createConfigGetter(defaults)`
+
+用于生成一个类型友好的 `getConfig(options?)`：
+
+```ts
+import { createConfigGetter } from 'postcss-plugin-shared'
+
+const defaultOptions = { rootValue: 16, propList: ['*'] as string[] }
+export const getConfig = createConfigGetter(defaultOptions)
+```
+
 ### `toFixed(number, precision)`
 
 对数值进行稳定四舍五入：
@@ -84,6 +99,19 @@ import { toFixed } from 'postcss-plugin-shared'
 
 toFixed(1.005, 2) // 1.01
 toFixed(0, 5) // 0
+```
+
+### `createUnitRegex(options)`
+
+用于构建单位替换用的全局正则，并可配置“跳过规则”：
+
+- 捕获组 1 为数值部分
+- 默认会跳过：引号字符串、`url(...)`、`var(...)`
+
+```ts
+import { createUnitRegex } from 'postcss-plugin-shared'
+
+const re = createUnitRegex({ units: ['px', 'rpx'], ignoreCase: true })
 ```
 
 ### `remRegex` / `pxRegex`
@@ -102,9 +130,24 @@ toFixed(0, 5) // 0
 - `blacklist` 支持 `string | RegExp`
 - `selector` 非字符串时返回 `false`
 
+### `maybeBlacklistedSelector(blacklist, selector?)`
+
+与 `blacklistedSelector` 一致，但当 `selector` 不是字符串时返回 `undefined`（方便调用方区分“未提供 selector”与“未命中”）。
+
 ### `createPropListMatcher(propList)`
 
 生成一个 `(prop: string) => boolean` 的匹配器，用于快速判断某个 CSS 属性是否需要处理。
+
+### `createAdvancedPropListMatcher(propList)`
+
+用于 `string[]` 的高级 `propList` 匹配器（兼容 `postcss-pxtrans` 的写法）：
+
+- `*`：匹配所有属性
+- `foo`：精确匹配
+- `foo*`：前缀匹配
+- `*foo`：后缀匹配
+- `*foo*`：包含匹配
+- `!pattern`：取反（黑名单）
 
 ### `createExcludeMatcher(exclude)`
 
