@@ -257,7 +257,7 @@ function plugin(userOptions: PxTransformOptions = {}) {
       const root = result.root
       const input = root?.source?.input
       if (!input) {
-        return null
+        return {}
       }
 
       root.walkComments((comment: Comment) => {
@@ -282,11 +282,11 @@ function plugin(userOptions: PxTransformOptions = {}) {
       const shouldSkip = () => Boolean(result.root?.raws?.__pxtransSkip)
 
       if (shouldSkip()) {
-        return null
+        return {}
       }
 
       if (exclude && exclude(result.opts.from)) {
-        return null
+        return {}
       }
 
       return {

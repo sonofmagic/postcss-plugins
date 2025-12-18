@@ -57,7 +57,7 @@ function handleRnEject(comment: Comment) {
 }
 
 export function createDirectivePlugin(options: PxTransformOptions = {}) {
-  const methods: PxTransformMethod[] = options.methods ?? ['platform', 'size']
+  const methods: readonly PxTransformMethod[] = options.methods ?? ['platform', 'size']
   const platform: PxTransformPlatform = options.platform ?? 'weapp'
 
   const plugin = {

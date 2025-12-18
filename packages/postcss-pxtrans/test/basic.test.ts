@@ -1,4 +1,4 @@
-import type { UserConfig } from '@/types'
+import type { PxTransformOptions } from '@/types'
 import postcss from 'postcss'
 import { filterPropList } from '@/filter-prop-list'
 import pxTransform from '@/index'
@@ -100,7 +100,7 @@ describe('precision & ranges', () => {
   })
 
   it('should not replace values below minPixelValue', () => {
-    const options: UserConfig = { platform: 'h5', designWidth: 640, minPixelValue: 2 }
+    const options: PxTransformOptions = { platform: 'h5', designWidth: 640, minPixelValue: 2 }
     const rules = '.rule { border: 1px solid #000; font-size: 16px; margin: 1px 10px; }'
     const expected = '.rule { border: 1px solid #000; font-size: 0.468rem; margin: 1px 0.2925rem; }'
     const processed = transform(rules, options)

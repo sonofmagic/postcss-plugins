@@ -1,3 +1,4 @@
+import type { Declaration, Rule } from 'postcss'
 import postcss from 'postcss'
 import pxTransform from '@/index'
 import { transform } from './utils'
@@ -42,9 +43,10 @@ describe('harmony branch coverage', () => {
       designWidth: 640,
       selectorBlackList: ['view'],
       deviceRatio,
-    }).prepare(result)!
+    }).prepare(result) as { Declaration: (decl: Declaration) => void }
 
-    const decl = result.root!.first!.first as any
+    const rule = result.root!.nodes![0] as Rule
+    const decl = rule.nodes![0] as Declaration
     prepared.Declaration(decl)
     expect(decl.value).toBe('10ch')
   })

@@ -22,10 +22,10 @@ export interface PxTransformOptions {
   baseFontSize?: number
   minRootSize?: number
 
-  methods?: PxTransformMethod[]
+  methods?: readonly PxTransformMethod[]
   unitPrecision?: number
-  selectorBlackList?: Array<string | RegExp>
-  propList?: string[]
+  selectorBlackList?: readonly (string | RegExp)[]
+  propList?: readonly string[]
   replace?: boolean
   mediaQuery?: boolean
   minPixelValue?: number
