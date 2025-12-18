@@ -1,9 +1,13 @@
 import postcss from 'postcss'
 import {
   blacklistedSelector,
+  createAdvancedPropListMatcher,
+  createConfigGetter,
   createExcludeMatcher,
   createPropListMatcher,
+  createUnitRegex,
   declarationExists,
+  maybeBlacklistedSelector,
   mergeOptions,
   pxRegex,
   remRegex,
@@ -62,6 +66,17 @@ describe('postcss-plugin-shared', () => {
     })
   })
 
+  describe('createConfigGetter', () => {
+    it('creates a getConfig helper that merges with defaults', () => {
+      const defaults = { rootValue: 16, propList: ['*'] as string[] }
+      const getConfig = createConfigGetter(defaults)
+
+      expect(getConfig()).toEqual(defaults)
+      expect(getConfig({ rootValue: 10 })).toEqual({ rootValue: 10, propList: ['*'] })
+      expect(getConfig({ propList: ['color'] })).toEqual({ rootValue: 16, propList: ['color'] })
+    })
+  })
+
   describe('declarationExists', () => {
     it('returns true only for matching decl nodes', () => {
       const root = postcss.parse('.rule { /* non-decl */ font-size: 16px; line-height: 24px; }')
@@ -104,6 +119,16 @@ describe('postcss-plugin-shared', () => {
       expect(output).toContain('d:var(--x,4px)')
       expect(output).toContain('e:5PX')
     })
+
+    it('createUnitRegex can be configured to not skip var()', () => {
+      const re = createUnitRegex({ units: ['px'], skipVar: false })
+      const input = 'a:var(--x,4px);b:5px;'
+      const output = input.replace(re, (match, value?: string) => {
+        return value ? `${value}PX` : match
+      })
+
+      expect(output).toBe('a:var(--x,4PX);b:5PX;')
+    })
   })
 
   describe('selectors', () => {
@@ -113,6 +138,12 @@ describe('postcss-plugin-shared', () => {
       expect(blacklistedSelector(['.forbidden'], '.allowed button')).toBe(false)
       expect(blacklistedSelector([/body$/], '.page-body')).toBe(true)
       expect(blacklistedSelector([/body$/], '.page-body .content')).toBe(false)
+    })
+
+    it('maybeBlacklistedSelector returns undefined for non-string selectors', () => {
+      expect(maybeBlacklistedSelector(['.forbidden'], undefined)).toBeUndefined()
+      expect(maybeBlacklistedSelector(['.forbidden'], '.forbidden button')).toBe(true)
+      expect(maybeBlacklistedSelector(['.forbidden'], '.allowed button')).toBe(false)
     })
 
     it('createPropListMatcher respects wildcards', () => {
@@ -144,6 +175,23 @@ describe('postcss-plugin-shared', () => {
       const matcher = createExcludeMatcher(filepath => filepath.includes('skip-me'))
       expect(matcher('/project/skip-me.css')).toBe(true)
       expect(matcher('/project/keep-me.css')).toBe(false)
+    })
+
+    it('createAdvancedPropListMatcher supports include/exclude patterns', () => {
+      const matcher = createAdvancedPropListMatcher([
+        '*',
+        '!border',
+        'font*',
+        '*height',
+        '*margin*',
+        '!*padding*',
+      ])
+
+      expect(matcher('font-size')).toBe(true)
+      expect(matcher('line-height')).toBe(true)
+      expect(matcher('margin-left')).toBe(true)
+      expect(matcher('padding-left')).toBe(false)
+      expect(matcher('border')).toBe(false)
     })
   })
 })

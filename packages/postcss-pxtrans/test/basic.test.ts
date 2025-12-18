@@ -1,6 +1,6 @@
 import type { PxTransformOptions } from '@/types'
 import postcss from 'postcss'
-import { filterPropList } from '@/filter-prop-list'
+import { createAdvancedPropListMatcher } from 'postcss-plugin-shared'
 import pxTransform from '@/index'
 import { basicCSS, transform } from './utils'
 
@@ -167,46 +167,22 @@ describe('selectorBlackList & replace/media', () => {
   })
 })
 
-describe('filter-prop-list helpers', () => {
-  it('should find exact matches from propList', () => {
-    const propList = ['font-size', 'margin', '!padding', '*border*', '*', '*y', '!*font*']
-    const expected = 'font-size,margin'
-    expect(filterPropList.exact(propList).join()).toBe(expected)
-  })
-  it('should find contain matches from propList', () => {
-    const propList = ['font-size', '*margin*', '!padding', '*border*', '*', '*y', '!*font*']
-    const expected = 'margin,border'
-    expect(filterPropList.contain(propList).join()).toBe(expected)
-  })
-  it('should find start matches from propList', () => {
-    const propList = ['font-size', '*margin*', '!padding', 'border*', '*', '*y', '!*font*']
-    const expected = 'border'
-    expect(filterPropList.startWith(propList).join()).toBe(expected)
-  })
-  it('should find end matches from propList', () => {
-    const propList = ['font-size', '*margin*', '!padding', 'border*', '*', '*y', '!*font*']
-    const expected = 'y'
-    expect(filterPropList.endWith(propList).join()).toBe(expected)
-  })
-  it('should find not matches from propList', () => {
-    const propList = ['font-size', '*margin*', '!padding', 'border*', '*', '*y', '!*font*']
-    const expected = 'padding'
-    expect(filterPropList.notExact(propList).join()).toBe(expected)
-  })
-  it('should find not contain matches from propList', () => {
-    const propList = ['font-size', '*margin*', '!padding', '!border*', '*', '*y', '!*font*']
-    const expected = 'font'
-    expect(filterPropList.notContain(propList).join()).toBe(expected)
-  })
-  it('should find not start matches from propList', () => {
-    const propList = ['font-size', '*margin*', '!padding', '!border*', '*', '*y', '!*font*']
-    const expected = 'border'
-    expect(filterPropList.notStartWith(propList).join()).toBe(expected)
-  })
-  it('should find not end matches from propList', () => {
-    const propList = ['font-size', '*margin*', '!padding', '!border*', '*', '!*y', '!*font*']
-    const expected = 'y'
-    expect(filterPropList.notEndWith(propList).join()).toBe(expected)
+describe('propList advanced matcher', () => {
+  it('supports exact/start/end/contain and negations', () => {
+    const match = createAdvancedPropListMatcher([
+      '*',
+      '*margin*',
+      'border*',
+      '!*font*',
+      '*height',
+      '!padding',
+    ])
+
+    expect(match('margin-left')).toBe(true)
+    expect(match('border-left')).toBe(true)
+    expect(match('line-height')).toBe(true)
+    expect(match('padding')).toBe(false)
+    expect(match('font-family')).toBe(false)
   })
 })
 

@@ -7,8 +7,7 @@ import type {
   Rule,
 } from 'postcss'
 import type { PxTransformOptions, PxTransformTargetUnit } from './types'
-import { blacklistedSelector, declarationExists } from 'postcss-plugin-shared'
-import { filterPropList } from './filter-prop-list'
+import { blacklistedSelector, createAdvancedPropListMatcher, declarationExists } from 'postcss-plugin-shared'
 import { pxRegex } from './pixel-unit-regex'
 
 export { createDirectivePlugin } from './directives'
@@ -65,43 +64,6 @@ function createRoundWithPrecision(precision: number) {
   return (value: number) => {
     const wholeNumber = Math.floor(value * multiplier)
     return Math.round(wholeNumber / 10) / divider
-  }
-}
-
-function createPropListMatcher(propList: readonly string[]) {
-  const hasWild = propList.includes('*')
-  const matchAll = hasWild && propList.length === 1
-  const lists = {
-    exact: filterPropList.exact(propList),
-    contain: filterPropList.contain(propList),
-    startWith: filterPropList.startWith(propList),
-    endWith: filterPropList.endWith(propList),
-    notExact: filterPropList.notExact(propList),
-    notContain: filterPropList.notContain(propList),
-    notStartWith: filterPropList.notStartWith(propList),
-    notEndWith: filterPropList.notEndWith(propList),
-  }
-
-  return function satisfyPropList(prop: string) {
-    if (matchAll) {
-      return true
-    }
-    const shouldInclude = (
-      hasWild
-      || lists.exact.includes(prop)
-      || lists.contain.some(m => prop.includes(m))
-      || lists.startWith.some(m => prop.startsWith(m))
-      || lists.endWith.some(m => prop.endsWith(m))
-    )
-
-    const shouldExclude = (
-      lists.notExact.includes(prop)
-      || lists.notContain.some(m => prop.includes(m))
-      || lists.notStartWith.some(m => prop.startsWith(m))
-      || lists.notEndWith.some(m => prop.endsWith(m))
-    )
-
-    return shouldInclude && !shouldExclude
   }
 }
 
@@ -255,7 +217,7 @@ function plugin(userOptions: PxTransformOptions = {}) {
       : options.onePxTransform
 
   const pxRgx = pxRegex(transUnits)
-  const satisfyPropList = createPropListMatcher(opts.propList ?? defaults.propList)
+  const satisfyPropList = createAdvancedPropListMatcher(opts.propList ?? defaults.propList)
   const unitPrecision = opts.unitPrecision ?? defaults.unitPrecision
   const minPixelValue = opts.minPixelValue ?? defaults.minPixelValue
   const shouldHandleSize = opts.methods.includes('size')

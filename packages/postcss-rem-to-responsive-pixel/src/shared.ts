@@ -1,21 +1,18 @@
-import type { UserDefinedOptions } from './types'
 import {
+  createConfigGetter,
   createExcludeMatcher,
   createPropListMatcher,
   declarationExists,
-  mergeOptions,
+  maybeBlacklistedSelector,
   pxRegex,
   remRegex,
-  blacklistedSelector as sharedBlacklistedSelector,
   toFixed,
 } from 'postcss-plugin-shared'
 import { defaultOptions } from './defaults'
 
 export const postcssPlugin = 'postcss-rem-to-responsive-pixel'
 
-export function getConfig(options?: UserDefinedOptions) {
-  return mergeOptions(options, defaultOptions) as Required<UserDefinedOptions>
-}
+export const getConfig = createConfigGetter(defaultOptions)
 
 export function createRemReplace(
   rootValue: number,
@@ -36,15 +33,7 @@ export function createRemReplace(
   }
 }
 
-export function blacklistedSelector(
-  blacklist: readonly (string | RegExp)[],
-  selector?: string,
-) {
-  if (typeof selector !== 'string') {
-    return undefined
-  }
-  return sharedBlacklistedSelector(blacklist, selector)
-}
+export const blacklistedSelector = maybeBlacklistedSelector
 
 export {
   createExcludeMatcher,

@@ -4,9 +4,12 @@
 // Not anything inside single quotes
 // Not anything inside url()
 // Any digit followed by units
+import { createUnitRegex } from 'postcss-plugin-shared'
+
 export function pxRegex(units: string[] = ['px']) {
-  return new RegExp(
-    `"[^"]+"|'[^']+'|url\\([^\\)]+\\)|(\\d*\\.?\\d+)(${units.join('|')})`,
-    'g',
-  )
+  return createUnitRegex({
+    units,
+    numberPattern: String.raw`\d*\.?\d+`,
+    skipVar: false,
+  })
 }
