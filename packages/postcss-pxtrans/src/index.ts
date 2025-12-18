@@ -40,6 +40,8 @@ const DEFAULT_WEAPP_OPTIONS = {
 
 const processed = Symbol('processed')
 const SPECIAL_PIXEL = ['Px', 'PX', 'pX'] as const
+const SPECIAL_PIXEL_SET = new Set<string>(SPECIAL_PIXEL)
+const pxTestRE = /px/i
 
 type RootValueFn = (input: Input, m: string, value: string) => number
 
@@ -54,10 +56,16 @@ function normalizeRootValue(value: unknown): RootValueFn {
   return () => defaults.rootValue
 }
 
-function toFixed(number: number, precision: number) {
+function createRoundWithPrecision(precision: number) {
+  if (precision < 0 || precision > 100) {
+    return (value: number) => value
+  }
   const multiplier = 10 ** (precision + 1)
-  const wholeNumber = Math.floor(number * multiplier)
-  return (Math.round(wholeNumber / 10) * 10) / multiplier
+  const divider = multiplier * 0.1
+  return (value: number) => {
+    const wholeNumber = Math.floor(value * multiplier)
+    return Math.round(wholeNumber / 10) / divider
+  }
 }
 
 function createPropListMatcher(propList: readonly string[]) {
@@ -106,7 +114,10 @@ function createPxReplace(
   targetUnit: PxTransformTargetUnit,
   unConvertTargetUnit: string | undefined,
 ) {
-  const specialUnits = new Set<string>(SPECIAL_PIXEL)
+  const specialUnits = SPECIAL_PIXEL_SET
+  const isHarmony = platform === 'harmony'
+  const preserveUnit = unConvertTargetUnit ?? targetUnit
+  const roundWithPrecision = createRoundWithPrecision(unitPrecision)
 
   return function createFileReplace(input: Input) {
     return function replace(m: string, $1?: string) {
@@ -114,29 +125,23 @@ function createPxReplace(
         return m
       }
 
-      if (platform === 'harmony' && specialUnits.has(m.slice(-2))) {
-        return `${$1}${unConvertTargetUnit}`
-      }
-
-      if (!onePxTransform && Number.parseInt($1, 10) === 1) {
-        if (platform === 'harmony') {
-          return `${$1}${unConvertTargetUnit}`
-        }
-        return m
+      if (isHarmony && specialUnits.has(m.slice(-2))) {
+        return `${$1}${preserveUnit}`
       }
 
       const pixels = Number.parseFloat($1)
+      if (!onePxTransform && pixels === 1) {
+        return isHarmony ? `${$1}${preserveUnit}` : m
+      }
+
       if (pixels < minPixelValue) {
-        if (platform === 'harmony') {
-          return `${$1}${unConvertTargetUnit}`
-        }
-        return m
+        return isHarmony ? `${$1}${preserveUnit}` : m
       }
 
       let val = pixels / rootValue(input, m, $1)
       /* c8 ignore next */
       if (unitPrecision >= 0 && unitPrecision <= 100) {
-        val = toFixed(val, unitPrecision)
+        val = roundWithPrecision(val)
       }
       // 不带单位不支持在calc表达式中参与计算(https://github.com/NervJS/taro/issues/12607)
       return `${val}${targetUnit}`
@@ -231,6 +236,10 @@ function plugin(userOptions: PxTransformOptions = {}) {
   const resolvedRootValue = typeof userOptions.rootValue !== 'undefined'
     ? userOptions.rootValue
     : computedRootValue ?? defaults.rootValue
+  const cacheComputedRootValue
+    = typeof userOptions.rootValue === 'undefined'
+      && typeof resolvedRootValue === 'function'
+      && (resolvedRootValue as RootValueFn).length <= 1
 
   const opts = {
     ...defaults,
@@ -249,6 +258,9 @@ function plugin(userOptions: PxTransformOptions = {}) {
   const satisfyPropList = createPropListMatcher(opts.propList ?? defaults.propList)
   const unitPrecision = opts.unitPrecision ?? defaults.unitPrecision
   const minPixelValue = opts.minPixelValue ?? defaults.minPixelValue
+  const shouldHandleSize = opts.methods.includes('size')
+  const shouldHandleMedia = shouldHandleSize && Boolean(opts.mediaQuery)
+  const hasSelectorBlackList = Boolean(opts.selectorBlackList?.length)
   /* c8 ignore end */
 
   return {
@@ -268,7 +280,12 @@ function plugin(userOptions: PxTransformOptions = {}) {
         return undefined
       })
 
-      const rootValue = normalizeRootValue(opts.rootValue)
+      const rootValue = cacheComputedRootValue
+        ? (() => {
+            const cached = (opts.rootValue as RootValueFn)(input, '', '')
+            return () => cached
+          })()
+        : normalizeRootValue(opts.rootValue)
       const pxReplace = createPxReplace(
         rootValue,
         unitPrecision,
@@ -280,12 +297,14 @@ function plugin(userOptions: PxTransformOptions = {}) {
       )(input)
 
       const shouldSkip = () => Boolean(result.root?.raws?.__pxtransSkip)
+      const blacklistedCache = hasSelectorBlackList ? new WeakMap<Rule, boolean>() : null
+      const isExcluded = exclude && exclude(result.opts.from)
 
       if (shouldSkip()) {
         return {}
       }
 
-      if (exclude && exclude(result.opts.from)) {
+      if (isExcluded) {
         return {}
       }
 
@@ -294,7 +313,7 @@ function plugin(userOptions: PxTransformOptions = {}) {
           if (shouldSkip()) {
             return
           }
-          if (!opts.methods.includes('size')) {
+          if (!shouldHandleSize) {
             return
           }
 
@@ -303,7 +322,7 @@ function plugin(userOptions: PxTransformOptions = {}) {
           }
           ;(decl as any)[processed] = true
 
-          if (!/px/i.test(decl.value)) {
+          if (!pxTestRE.test(decl.value)) {
             return
           }
 
@@ -312,10 +331,20 @@ function plugin(userOptions: PxTransformOptions = {}) {
           }
 
           const parent = decl.parent as Rule | undefined
-          const isBlacklisted = blacklistedSelector(
-            opts.selectorBlackList as readonly (string | RegExp)[],
-            parent?.selector,
-          )
+          let isBlacklisted = false
+          if (hasSelectorBlackList && parent) {
+            const cached = blacklistedCache?.get(parent)
+            if (cached !== undefined) {
+              isBlacklisted = cached
+            }
+            else {
+              isBlacklisted = blacklistedSelector(
+                opts.selectorBlackList as readonly (string | RegExp)[],
+                parent.selector,
+              )
+              blacklistedCache?.set(parent, isBlacklisted)
+            }
+          }
           if (isBlacklisted && platform !== 'harmony') {
             return
           }
@@ -323,11 +352,13 @@ function plugin(userOptions: PxTransformOptions = {}) {
           /* c8 ignore start */
           let value: string | undefined
           if (isBlacklisted) {
+            pxRgx.lastIndex = 0
             value = decl.value.replace(pxRgx, (m, $1) => {
               return $1 ? `${$1}${unConvertTargetUnit}` : m
             })
           }
           else {
+            pxRgx.lastIndex = 0
             value = decl.value.replace(pxRgx, pxReplace)
           }
           /* c8 ignore end */
@@ -345,18 +376,16 @@ function plugin(userOptions: PxTransformOptions = {}) {
         },
         AtRule: {
           media(rule: AtRule) {
-            if (!opts.mediaQuery) {
+            if (!shouldHandleMedia) {
               return
             }
             if (shouldSkip()) {
               return
             }
-            if (!opts.methods.includes('size')) {
+            if (!pxTestRE.test(rule.params)) {
               return
             }
-            if (!/px/i.test(rule.params)) {
-              return
-            }
+            pxRgx.lastIndex = 0
             rule.params = rule.params.replace(pxRgx, pxReplace)
           },
         },
