@@ -1,0 +1,56 @@
+{
+  "name": "postcss-pxtrans",
+  "version": "1.0.0",
+  "description": "PostCSS plugin that converts px units to rpx/rem/vw/px for multiple platforms.",
+  "author": "ice breaker <1324318532@qq.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sonofmagic/postcss-plugins.git",
+    "directory": "packages/postcss-pxtrans"
+  },
+  "bugs": {
+    "url": "https://github.com/sonofmagic/postcss-plugins/issues"
+  },
+  "keywords": [
+    "postcss",
+    "postcss-plugin",
+    "px",
+    "rpx",
+    "rem",
+    "vw",
+    "pxtransform"
+  ],
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "tsup --watch --sourcemap",
+    "build": "tsup",
+    "test": "vitest run",
+    "test:dev": "vitest",
+    "bench": "vitest bench",
+    "release": "pnpm publish",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
+  },
+  "peerDependencies": {
+    "postcss": "^8"
+  },
+  "publishConfig": {
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "import": "./dist/index.mjs",
+        "require": "./dist/index.cjs"
+      }
+    },
+    "main": "./dist/index.cjs",
+    "module": "./dist/index.mjs",
+    "types": "./dist/index.d.ts"
+  }
+}
