@@ -1,6 +1,5 @@
 import type {
   AtRule,
-  ChildNode,
   Comment,
   Declaration,
   Input,
@@ -8,6 +7,7 @@ import type {
   Rule,
 } from 'postcss'
 import type { PxTransformOptions, PxTransformTargetUnit } from './types'
+import { blacklistedSelector, declarationExists } from 'postcss-plugin-shared'
 import { filterPropList } from './filter-prop-list'
 import { pxRegex } from './pixel-unit-regex'
 
@@ -58,35 +58,6 @@ function toFixed(number: number, precision: number) {
   const multiplier = 10 ** (precision + 1)
   const wholeNumber = Math.floor(number * multiplier)
   return (Math.round(wholeNumber / 10) * 10) / multiplier
-}
-
-function declarationExists(
-  decls: { some: (cb: (node: ChildNode) => boolean) => boolean },
-  prop: string,
-  value: string,
-) {
-  return decls.some((node) => {
-    if (node.type !== 'decl') {
-      return false
-    }
-    const decl = node as Declaration
-    return decl.prop === prop && decl.value === value
-  })
-}
-
-function blacklistedSelector(
-  blacklist: readonly (string | RegExp)[],
-  selector?: string,
-) {
-  if (typeof selector !== 'string') {
-    return false
-  }
-  return blacklist.some((rule) => {
-    if (typeof rule === 'string') {
-      return selector.includes(rule)
-    }
-    return Boolean(selector.match(rule))
-  })
 }
 
 function createPropListMatcher(propList: readonly string[]) {

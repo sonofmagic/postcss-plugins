@@ -1,27 +1,22 @@
 {
-  "name": "postcss-rem-to-viewport",
-  "version": "1.0.3",
-  "description": "Convert rem units to viewport units using PostCSS.",
+  "name": "postcss-plugin-shared",
+  "version": "1.0.0",
+  "description": "Shared utilities for postcss-plugins monorepo packages.",
   "author": "ice breaker <1324318532@qq.com>",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/sonofmagic/postcss-plugins.git",
-    "directory": "packages/postcss-rem-to-viewport"
+    "directory": "packages/postcss-plugin-shared"
   },
   "bugs": {
     "url": "https://github.com/sonofmagic/postcss-plugins/issues"
   },
   "keywords": [
-    "viewport",
     "postcss",
     "postcss-plugin",
-    "postcss-rem",
-    "rem-to-viewport",
-    "responsive",
-    "css",
-    "rem",
-    "vw"
+    "shared",
+    "utils"
   ],
   "sideEffects": false,
   "exports": {
@@ -33,15 +28,14 @@
   "scripts": {
     "dev": "tsup --watch --sourcemap",
     "build": "tsup",
-    "test": "vitest run",
-    "test:dev": "vitest",
-    "bench": "vitest bench",
-    "release": "pnpm publish",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"
   },
+  "peerDependencies": {
+    "postcss": "^8"
+  },
   "dependencies": {
-    "postcss-plugin-shared": "workspace:^"
+    "defu": "^6.1.4"
   },
   "publishConfig": {
     "exports": {

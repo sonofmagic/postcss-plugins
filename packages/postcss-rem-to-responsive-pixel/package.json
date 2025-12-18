@@ -70,6 +70,9 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"
   },
+  "dependencies": {
+    "postcss-plugin-shared": "workspace:^"
+  },
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org"

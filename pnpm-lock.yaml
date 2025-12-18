@@ -128,6 +128,9 @@ importers:
       postcss:
         specifier: ^8.5.6
         version: 8.5.6
+      postcss-plugin-shared:
+        specifier: workspace:^
+        version: link:packages/postcss-plugin-shared
       postcss-pxtorem:
         specifier: ^6.1.0
         version: 6.1.0(postcss@8.5.6)
@@ -174,15 +177,35 @@ importers:
         specifier: ^2.8.2
         version: 2.8.2
 
+  packages/postcss-plugin-shared:
+    dependencies:
+      defu:
+        specifier: ^6.1.4
+        version: 6.1.4
+      postcss:
+        specifier: ^8
+        version: 8.5.6
+
   packages/postcss-pxtrans:
     dependencies:
       postcss:
         specifier: ^8
         version: 8.5.6
+      postcss-plugin-shared:
+        specifier: workspace:^
+        version: link:../postcss-plugin-shared
 
-  packages/postcss-rem-to-responsive-pixel: {}
+  packages/postcss-rem-to-responsive-pixel:
+    dependencies:
+      postcss-plugin-shared:
+        specifier: workspace:^
+        version: link:../postcss-plugin-shared
 
-  packages/postcss-rem-to-viewport: {}
+  packages/postcss-rem-to-viewport:
+    dependencies:
+      postcss-plugin-shared:
+        specifier: workspace:^
+        version: link:../postcss-plugin-shared
 
 packages:
 

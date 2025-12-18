@@ -2,6 +2,8 @@
 
 A plugin for [PostCSS](https://github.com/ai/postcss) that generates viewport units from rem units.
 
+English | [简体中文](./README.zh-CN.md)
+
 - Rewrite with `typescript` and well tested.
 - TransformUnit Support `vw` and others !
 
@@ -117,7 +119,7 @@ If disable this plugin.
 
 Currently, the easiest way to have a single property ignored is to use a capital in the rem unit declaration.
 
-```css
+```text
 /* `rem` is converted to `px` */
 .convert {
   font-size: 1rem;
@@ -125,8 +127,8 @@ Currently, the easiest way to have a single property ignored is to use a capital
 
 /* `Rem` or `REM` is ignored by `postcss-rem-to-pixel` but still accepted by browsers */
 .ignore {
-  border: 1rem solid;
-  border-width: 2rem;
+  border: 1Rem solid;
+  border-width: 2REM;
 }
 ```
 
