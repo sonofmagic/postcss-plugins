@@ -1,4 +1,4 @@
-import type { Root, Rule } from 'postcss'
+import type { Input, Root, Rule } from 'postcss'
 import type { PostcssRemToResponsivePixel, UserDefinedOptions } from './types'
 import { remRegex } from './regex'
 import {
@@ -35,58 +35,73 @@ const plugin: PostcssRemToResponsivePixel = (
   }
   const satisfyPropList = createPropListMatcher(propList)
   const excludeFn = createExcludeMatcher(exclude)
+  const hasSelectorBlacklist = selectorBlackList.length > 0
+  const shouldClone = !replace
+  const shouldProcessMedia = mediaQuery
+  const isRootValueFn = typeof rootValue === 'function'
+  const staticReplace = isRootValueFn
+    ? undefined
+    : createRemReplace(rootValue, unitPrecision, minRemValue, transformUnit)
 
   return {
     postcssPlugin,
     [processorStage]: (css: Root) => {
       const source = css.source
-      const input = source!.input
-      const filePath = input.file as string
-      const isExcludeFile = excludeFn(filePath)
-      if (isExcludeFile) {
+      const input = source?.input
+      const filePath = input?.file as string | undefined
+      if (filePath && excludeFn(filePath)) {
         return
       }
-      const _rootValue
-        = typeof rootValue === 'function' ? rootValue(input) : rootValue
-      const pxReplace = createRemReplace(
-        _rootValue,
-        unitPrecision,
-        minRemValue,
-        transformUnit,
-      )
+      const pxReplace = isRootValueFn
+        ? createRemReplace(
+            (rootValue as (input: Input) => number)(input!),
+            unitPrecision,
+            minRemValue,
+            transformUnit,
+          )
+        : staticReplace!
 
       css.walkDecls((decl) => {
-        const rule = decl.parent as Rule
+        const value = decl.value
         if (
-          !decl.value.includes('rem')
+          !value.includes('rem')
           || !satisfyPropList(decl.prop)
-          || blacklistedSelector(selectorBlackList, rule.selector)
         ) {
           return
         }
-
-        const value = decl.value.replace(remRegex, pxReplace)
-
-        if (declarationExists(rule, decl.prop, value)) {
+        const rule = decl.parent as Rule
+        if (hasSelectorBlacklist && blacklistedSelector(selectorBlackList, rule.selector)) {
           return
         }
 
-        if (replace) {
-          decl.value = value
+        const nextValue = value.replace(remRegex, pxReplace)
+        if (nextValue === value) {
+          return
+        }
+
+        if (declarationExists(rule, decl.prop, nextValue)) {
+          return
+        }
+
+        if (shouldClone) {
+          decl.cloneAfter({ value: nextValue })
         }
         else {
-          decl.cloneAfter({ value })
+          decl.value = nextValue
         }
       })
 
-      css.walkAtRules((atRule) => {
-        if (mediaQuery && atRule.name === 'media') {
+      if (shouldProcessMedia) {
+        css.walkAtRules('media', (atRule) => {
           if (!atRule.params.includes('rem')) {
             return
           }
-          atRule.params = atRule.params.replace(remRegex, pxReplace)
-        }
-      })
+          const nextParams = atRule.params.replace(remRegex, pxReplace)
+          if (nextParams !== atRule.params) {
+            atRule.params = nextParams
+          }
+        })
+      }
     },
   }
 }

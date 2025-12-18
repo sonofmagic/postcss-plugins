@@ -1,12 +1,12 @@
 import type { UserDefinedOptions } from './types'
 import {
-  blacklistedSelector,
   createExcludeMatcher,
   createPropListMatcher,
   declarationExists,
   mergeOptions,
   pxRegex,
   remRegex,
+  blacklistedSelector as sharedBlacklistedSelector,
   toFixed,
 } from 'postcss-plugin-shared'
 import { defaultOptions } from './defaults'
@@ -36,8 +36,17 @@ export function createRemReplace(
   }
 }
 
+export function blacklistedSelector(
+  blacklist: readonly (string | RegExp)[],
+  selector?: string,
+) {
+  if (typeof selector !== 'string') {
+    return undefined
+  }
+  return sharedBlacklistedSelector(blacklist, selector)
+}
+
 export {
-  blacklistedSelector,
   createExcludeMatcher,
   createPropListMatcher,
   declarationExists,

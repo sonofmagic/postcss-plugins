@@ -103,7 +103,14 @@ function buildReportMarkdown(pkgName, version, command, report) {
   return lines.join('\n')
 }
 
-function listPackageDirs() {
+function normalizePackageFilter(entries) {
+  const filters = entries
+    .map(entry => entry.trim())
+    .filter(Boolean)
+  return new Set(filters)
+}
+
+function listPackageDirs(filters) {
   if (!fs.existsSync(packagesDir)) {
     return []
   }
@@ -111,10 +118,26 @@ function listPackageDirs() {
     .readdirSync(packagesDir, { withFileTypes: true })
     .filter(entry => entry.isDirectory())
     .map(entry => path.join(packagesDir, entry.name))
+    .filter((dir) => {
+      if (!filters.size) {
+        return true
+      }
+      const baseName = path.basename(dir)
+      if (filters.has(baseName)) {
+        return true
+      }
+      const packageJsonPath = path.join(dir, 'package.json')
+      if (!fs.existsSync(packageJsonPath)) {
+        return false
+      }
+      const pkg = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'))
+      return Boolean(pkg.name && filters.has(pkg.name))
+    })
 }
 
 async function runBenchmarks() {
-  const packageDirs = listPackageDirs()
+  const filters = normalizePackageFilter(process.argv.slice(2))
+  const packageDirs = listPackageDirs(filters)
 
   for (const packageDir of packageDirs) {
     const packageJsonPath = path.join(packageDir, 'package.json')
