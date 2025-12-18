@@ -42,12 +42,12 @@ function handleIfndef(comment: Comment, platform: PxTransformPlatform) {
 }
 
 function handleRnEject(comment: Comment) {
-  if (comment.text !== 'postcss-pxtransform rn eject enable') {
+  if (comment.text !== 'postcss-pxtrans rn eject enable') {
     return
   }
   let next = comment.next()
   while (next) {
-    if (next.type === 'comment' && next.text === 'postcss-pxtransform rn eject disable') {
+    if (next.type === 'comment' && next.text === 'postcss-pxtrans rn eject disable') {
       break
     }
     const temp = next.next()
@@ -68,7 +68,7 @@ export function createDirectivePlugin(options: PxTransformOptions = {}) {
 
       return {
         Comment(comment: Comment) {
-          if (comment.text === 'postcss-pxtransform disable') {
+          if (comment.text === 'postcss-pxtrans disable') {
             state.skip = true
             root.raws.__pxtransSkip = true
             return

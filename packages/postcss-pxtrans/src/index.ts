@@ -1,6 +1,7 @@
 import type {
   AtRule,
   ChildNode,
+  Comment,
   Declaration,
   Input,
   Result,
@@ -287,6 +288,14 @@ function plugin(userOptions: PxTransformOptions = {}) {
       if (!input) {
         return null
       }
+
+      root.walkComments((comment: Comment) => {
+        if (comment.text === 'postcss-pxtrans disable') {
+          root.raws.__pxtransSkip = true
+          return false
+        }
+        return undefined
+      })
 
       const rootValue = normalizeRootValue(opts.rootValue)
       const pxReplace = createPxReplace(
