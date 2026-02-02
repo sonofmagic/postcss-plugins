@@ -1,0 +1,60 @@
+{
+  "name": "postcss-units-to-px",
+  "type": "module",
+  "version": "0.0.0",
+  "description": "Convert multiple CSS units to px with PostCSS.",
+  "author": "ice breaker <1324318532@qq.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sonofmagic/postcss-plugins.git",
+    "directory": "packages/postcss-units-to-px"
+  },
+  "bugs": {
+    "url": "https://github.com/sonofmagic/postcss-plugins/issues"
+  },
+  "keywords": [
+    "postcss",
+    "postcss-plugin",
+    "css",
+    "units",
+    "px",
+    "unit-conversion",
+    "responsive"
+  ],
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "tsdown -w",
+    "build": "tsdown",
+    "test": "vitest run",
+    "test:dev": "vitest",
+    "release": "pnpm publish",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
+  },
+  "peerDependencies": {
+    "postcss": "^8"
+  },
+  "dependencies": {
+    "postcss-plugin-shared": "workspace:^"
+  }
+}
