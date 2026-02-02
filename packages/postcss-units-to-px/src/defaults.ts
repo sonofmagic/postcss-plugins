@@ -1,5 +1,8 @@
 import type { UnitMap, UserDefinedOptions } from './types'
 
+export type ResolvedOptions = Required<Omit<UserDefinedOptions, 'transform'>>
+  & { transform?: UserDefinedOptions['transform'] }
+
 export const defaultUnitMap: UnitMap = {
   rem: 16,
   em: 16,
@@ -10,7 +13,7 @@ export const defaultUnitMap: UnitMap = {
   rpx: 0.5,
 }
 
-export const defaultOptions = {
+export const defaultOptions: ResolvedOptions = {
   unitMap: defaultUnitMap,
   unitPrecision: 5,
   selectorBlackList: [] as Array<string | RegExp>,
@@ -20,6 +23,4 @@ export const defaultOptions = {
   minValue: 0,
   exclude: [/node_modules/i],
   disabled: false,
-} satisfies Required<Omit<UserDefinedOptions, 'transform'>> & {
-  unitMap: UnitMap
 }

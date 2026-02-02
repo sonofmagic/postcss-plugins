@@ -5,6 +5,7 @@ import {
   createConfigGetter,
   createExcludeMatcher,
   createPropListMatcher,
+  createSelectorBlacklistMatcher,
   createUnitRegex,
   declarationExists,
   maybeBlacklistedSelector,
@@ -175,6 +176,19 @@ describe('postcss-plugin-shared', () => {
       const matcher = createExcludeMatcher(filepath => filepath.includes('skip-me'))
       expect(matcher('/project/skip-me.css')).toBe(true)
       expect(matcher('/project/keep-me.css')).toBe(false)
+    })
+
+    it('createSelectorBlacklistMatcher caches rule checks', () => {
+      const root = postcss.parse('.skip { color: red; } .keep { color: blue; }')
+      const rules = root.nodes.filter(node => node.type === 'rule')
+      const matcher = createSelectorBlacklistMatcher(['.skip'])
+
+      const firstRule = rules[0] as any
+      const secondRule = rules[1] as any
+
+      expect(matcher(firstRule)).toBe(true)
+      expect(matcher(firstRule)).toBe(true)
+      expect(matcher(secondRule)).toBe(false)
     })
 
     it('createAdvancedPropListMatcher supports include/exclude patterns', () => {

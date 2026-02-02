@@ -1,5 +1,13 @@
 import { createDefu } from 'defu'
 
+export type DeepPartial<T> = {
+  [K in keyof T]?: T[K] extends any[]
+    ? T[K]
+    : T[K] extends Record<string, any>
+      ? DeepPartial<T[K]>
+      : T[K]
+}
+
 const defu = createDefu((obj, key, value) => {
   if (Array.isArray(obj[key]) && Array.isArray(value)) {
     obj[key] = value
@@ -8,14 +16,14 @@ const defu = createDefu((obj, key, value) => {
 })
 
 export function mergeOptions<T extends Record<string, any>>(
-  options: Partial<T> | undefined,
+  options: DeepPartial<T> | undefined,
   defaults: T,
 ) {
-  return defu(options ?? ({} as Partial<T>), defaults) as T
+  return defu(options ?? ({} as DeepPartial<T>), defaults) as T
 }
 
 export function createConfigGetter<T extends Record<string, any>>(defaults: T) {
-  return function getConfig(options?: Partial<T>) {
+  return function getConfig(options?: DeepPartial<T>) {
     return mergeOptions(options, defaults) as T
   }
 }

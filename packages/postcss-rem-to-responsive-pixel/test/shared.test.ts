@@ -39,7 +39,7 @@ describe('shared helpers', () => {
 
   it('declarationExists detects duplicate declarations inside the same rule', () => {
     const root = postcss.parse('.rule { font-size: 16px; line-height: 24px; }')
-    const rule = root.first!
+    const rule = root.first! as any
 
     expect(declarationExists(rule, 'font-size', '16px')).toBe(true)
     expect(declarationExists(rule, 'font-size', '1rem')).toBe(false)

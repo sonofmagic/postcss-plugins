@@ -6,7 +6,11 @@ import type {
   Result,
   Rule,
 } from 'postcss'
-import type { PxTransformOptions, PxTransformTargetUnit } from './types'
+import type {
+  PxTransformMethod,
+  PxTransformOptions,
+  PxTransformTargetUnit,
+} from './types'
 import { blacklistedSelector, createAdvancedPropListMatcher, declarationExists } from 'postcss-plugin-shared'
 import { pxRegex } from './pixel-unit-regex'
 
@@ -14,7 +18,7 @@ export { createDirectivePlugin } from './directives'
 export * from './types'
 
 const defaults = {
-  methods: ['platform', 'size'] as const,
+  methods: ['platform', 'size'] as PxTransformMethod[],
   rootValue: 16,
   unitPrecision: 5,
   selectorBlackList: [] as Array<string | RegExp>,
@@ -24,18 +28,18 @@ const defaults = {
   minPixelValue: 0,
 }
 
-const deviceRatio = {
+const deviceRatio: NonNullable<PxTransformOptions['deviceRatio']> = {
   375: 2,
   640: 2.34 / 2,
   750: 1,
   828: 1.81 / 2,
-} as const
+}
 
-const DEFAULT_WEAPP_OPTIONS = {
+const DEFAULT_WEAPP_OPTIONS: Required<Pick<PxTransformOptions, 'platform' | 'designWidth' | 'deviceRatio'>> = {
   platform: 'weapp',
   designWidth: 750,
   deviceRatio,
-} as const
+}
 
 const processed = Symbol('processed')
 const SPECIAL_PIXEL = ['Px', 'PX', 'pX'] as const
@@ -114,18 +118,23 @@ function createPxReplace(
 const postcssPlugin = 'postcss-pxtrans'
 
 function plugin(userOptions: PxTransformOptions = {}) {
-  const options: Record<string, any> = Object.assign({}, DEFAULT_WEAPP_OPTIONS, userOptions)
+  const options: Required<Pick<PxTransformOptions, 'platform' | 'designWidth' | 'deviceRatio'>> & PxTransformOptions = {
+    ...DEFAULT_WEAPP_OPTIONS,
+    ...userOptions,
+  }
 
   const exclude: PxTransformOptions['exclude'] = options.exclude
   const transUnits: string[] = ['px']
-  const baseFontSize
-    = options.baseFontSize
-      || (options.minRootSize >= 1 ? options.minRootSize : 20)
+  const minRootSize = options.minRootSize ?? 0
+  const baseFontSize = options.baseFontSize ?? (minRootSize >= 1 ? minRootSize : 20)
 
   const designWidth = (input: Input) =>
     typeof options.designWidth === 'function'
       ? options.designWidth(input)
       : options.designWidth
+
+  const deviceRatioValue = (input: Input) =>
+    options.deviceRatio[designWidth(input)] ?? 1
 
   let targetUnit: PxTransformTargetUnit
   let unConvertTargetUnit: string | undefined
@@ -144,11 +153,11 @@ function plugin(userOptions: PxTransformOptions = {}) {
           break
         case 'px':
           computedRootValue = (input: Input) =>
-            (1 / options.deviceRatio[designWidth(input)]) * 2
+            (1 / deviceRatioValue(input)) * 2
           break
         default:
           computedRootValue = (input: Input) =>
-            (baseFontSize / options.deviceRatio[designWidth(input)]) * 2
+            (baseFontSize / deviceRatioValue(input)) * 2
           break
       }
 
@@ -157,7 +166,7 @@ function plugin(userOptions: PxTransformOptions = {}) {
     }
     case 'rn': {
       computedRootValue = (input: Input) =>
-        (1 / options.deviceRatio[designWidth(input)]) * 2
+        (1 / deviceRatioValue(input)) * 2
       targetUnit = 'px'
       break
     }
@@ -169,7 +178,7 @@ function plugin(userOptions: PxTransformOptions = {}) {
     case 'harmony': {
       /* c8 ignore start */
       computedRootValue = (input: Input) =>
-        1 / options.deviceRatio[designWidth(input)]
+        1 / deviceRatioValue(input)
       targetUnit = 'px'
       unConvertTargetUnit = 'ch'
       transUnits.push(...SPECIAL_PIXEL)
@@ -180,15 +189,15 @@ function plugin(userOptions: PxTransformOptions = {}) {
       targetUnit = (options.targetUnit ?? 'rpx') as PxTransformTargetUnit
       if (targetUnit === 'rem') {
         computedRootValue = (input: Input) =>
-          (baseFontSize / options.deviceRatio[designWidth(input)]) * 2
+          (baseFontSize / deviceRatioValue(input)) * 2
       }
       else if (targetUnit === 'px') {
         computedRootValue = (input: Input) =>
-          (1 / options.deviceRatio[designWidth(input)]) * 2
+          (1 / deviceRatioValue(input)) * 2
       }
       else {
         computedRootValue = (input: Input) =>
-          1 / options.deviceRatio[designWidth(input)]
+          1 / deviceRatioValue(input)
       }
     }
   }
@@ -209,7 +218,7 @@ function plugin(userOptions: PxTransformOptions = {}) {
     rootValue: resolvedRootValue as number | RootValueFn,
   } as PxTransformOptions & {
     rootValue: number | RootValueFn
-    methods: typeof defaults.methods
+    methods: readonly PxTransformMethod[]
   }
   const onePxTransform
     = typeof options.onePxTransform === 'undefined'

@@ -1,20 +1,16 @@
-import type { AtRule, Rule } from 'postcss'
 import type {
   PostcssUnitsToPx,
-  TransformContext,
   UnitMap,
   UnitTransform,
   UserDefinedOptions,
 } from './types'
+import { defaultUnitMap } from './defaults'
 import {
-  blacklistedSelector,
-  createExcludeMatcher,
-  createPropListMatcher,
   createUnitRegex,
-  declarationExists,
   getConfig,
   postcssPlugin,
   toFixed,
+  walkAndReplaceValues,
 } from './shared'
 
 type UnitRule = number | UnitTransform | null
@@ -40,7 +36,7 @@ function createReplace(
   unitPrecision: number,
   minValue: number,
   transform: UserDefinedOptions['transform'],
-  context: TransformContext,
+  context: Parameters<NonNullable<UserDefinedOptions['transform']>>[2],
 ) {
   const shouldRound = unitPrecision >= 0 && unitPrecision <= 100
 
@@ -89,8 +85,8 @@ function createReplace(
 }
 
 const plugin: PostcssUnitsToPx = (options: UserDefinedOptions = {}) => {
+  const resolved = getConfig(options)
   const {
-    unitMap: mergedUnitMap,
     transform,
     unitPrecision,
     minValue,
@@ -100,7 +96,12 @@ const plugin: PostcssUnitsToPx = (options: UserDefinedOptions = {}) => {
     mediaQuery,
     exclude,
     disabled,
-  } = getConfig(options)
+  } = resolved
+
+  const mergedUnitMap = {
+    ...defaultUnitMap,
+    ...(options.unitMap ?? {}),
+  }
 
   if (disabled) {
     return { postcssPlugin }
@@ -113,100 +114,28 @@ const plugin: PostcssUnitsToPx = (options: UserDefinedOptions = {}) => {
   }
 
   const unitRegex = createUnitRegex({ units })
-  const unitTestRegex = new RegExp(unitRegex.source, unitRegex.flags.replace('g', ''))
-  const satisfyPropList = createPropListMatcher(propList)
-  const excludeFn = createExcludeMatcher(exclude)
-  const hasSelectorBlacklist = selectorBlackList.length > 0
 
   return {
     postcssPlugin,
     Once(css) {
-      const source = css.source
-      const input = source!.input
-      const filePath = input.file as string | undefined
-
-      if (excludeFn(filePath)) {
-        return
-      }
-
-      const selectorBlacklistCache: WeakMap<Rule, boolean> | undefined = hasSelectorBlacklist
-        ? new WeakMap()
-        : undefined
-
-      css.walkDecls((decl) => {
-        if (!satisfyPropList(decl.prop) || !unitTestRegex.test(decl.value)) {
-          return
-        }
-
-        const rule = decl.parent as Rule
-        if (selectorBlacklistCache) {
-          const cached = selectorBlacklistCache.get(rule)
-          const isBlacklisted = cached ?? Boolean(blacklistedSelector(selectorBlackList, rule.selector))
-          if (cached === undefined) {
-            selectorBlacklistCache.set(rule, isBlacklisted)
-          }
-          if (isBlacklisted) {
-            return
-          }
-        }
-
-        const context: TransformContext = {
-          root: css,
-          input,
-          filePath,
-          decl,
-          rule,
-          atRule: rule.parent?.type === 'atrule' ? (rule.parent as AtRule) : undefined,
-          prop: decl.prop,
-          selector: rule.selector,
-        }
-        const replacer = createReplace(
-          normalizedUnitMap,
-          unitPrecision,
-          minValue,
-          transform,
-          context,
-        )
-        const value = decl.value.replace(unitRegex, replacer)
-
-        if (value === decl.value) {
-          return
-        }
-
-        if ((rule.nodes?.length ?? 0) > 1 && declarationExists(rule, decl.prop, value)) {
-          return
-        }
-
-        if (replace) {
-          decl.value = value
-          return
-        }
-
-        decl.cloneAfter({ value })
-      })
-
-      css.walkAtRules((atRule) => {
-        if (!mediaQuery || atRule.name !== 'media') {
-          return
-        }
-        if (!unitTestRegex.test(atRule.params)) {
-          return
-        }
-
-        const context: TransformContext = {
-          root: css,
-          input,
-          filePath,
-          atRule,
-        }
-        const replacer = createReplace(
-          normalizedUnitMap,
-          unitPrecision,
-          minValue,
-          transform,
-          context,
-        )
-        atRule.params = atRule.params.replace(unitRegex, replacer)
+      walkAndReplaceValues({
+        root: css,
+        unitRegex,
+        propList,
+        selectorBlackList,
+        exclude,
+        replace,
+        mediaQuery,
+        createReplacer: (context) => {
+          return createReplace(
+            normalizedUnitMap,
+            unitPrecision,
+            minValue,
+            transform,
+            context,
+          )
+        },
+        shouldProcessAtRule: atRule => atRule.name === 'media',
       })
     },
   }

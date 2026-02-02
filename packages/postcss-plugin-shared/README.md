@@ -51,7 +51,9 @@ Entry: `packages/postcss-plugin-shared/src/index.ts`
 - `createPropListMatcher`: builds a property matcher from `propList` (supports `*`)
 - `createAdvancedPropListMatcher`: advanced prop matcher (wildcards + negation) for `string[]`
 - `createExcludeMatcher`: builds an exclude matcher from `exclude` (array or function)
+- `createSelectorBlacklistMatcher`: selector blacklist matcher with optional cache
 - `declarationExists`: checks whether a rule/decls already contains the same `prop/value` to avoid duplicates
+- `walkAndReplaceValues`: shared walker to replace declaration values and media params
 
 ## API
 

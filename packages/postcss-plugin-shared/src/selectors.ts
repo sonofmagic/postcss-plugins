@@ -1,3 +1,5 @@
+import type { Rule } from 'postcss'
+
 export function blacklistedSelector(
   blacklist: readonly (string | RegExp)[],
   selector?: string,
@@ -21,6 +23,34 @@ export function maybeBlacklistedSelector(
     return undefined
   }
   return blacklistedSelector(blacklist, selector)
+}
+
+export interface SelectorBlacklistMatcherOptions {
+  cache?: boolean
+}
+
+export function createSelectorBlacklistMatcher(
+  blacklist: readonly (string | RegExp)[],
+  options: SelectorBlacklistMatcherOptions = {},
+) {
+  const useCache = options.cache ?? true
+  const cache = useCache ? new WeakMap<Rule, boolean>() : undefined
+
+  return function isBlacklisted(rule: Rule) {
+    if (blacklist.length === 0) {
+      return false
+    }
+    if (cache) {
+      const cached = cache.get(rule)
+      if (cached !== undefined) {
+        return cached
+      }
+      const value = Boolean(maybeBlacklistedSelector(blacklist, rule.selector))
+      cache.set(rule, value)
+      return value
+    }
+    return Boolean(maybeBlacklistedSelector(blacklist, rule.selector))
+  }
 }
 
 export function createPropListMatcher(propList: readonly (string | RegExp)[]) {

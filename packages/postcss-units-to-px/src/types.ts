@@ -1,22 +1,7 @@
-import type {
-  AtRule,
-  Declaration,
-  Input,
-  PluginCreator,
-  Root,
-  Rule,
-} from 'postcss'
+import type { PluginCreator } from 'postcss'
+import type { ReplaceContext } from 'postcss-plugin-shared'
 
-export interface TransformContext {
-  root: Root
-  input: Input
-  filePath?: string
-  decl?: Declaration
-  rule?: Rule
-  atRule?: AtRule
-  prop?: string
-  selector?: string
-}
+export type TransformContext = ReplaceContext
 
 export type UnitTransform = (value: number, context: TransformContext) => number
 export type GlobalTransform = (

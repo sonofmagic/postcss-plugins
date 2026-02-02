@@ -2,11 +2,13 @@ import {
   createConfigGetter,
   createExcludeMatcher,
   createPropListMatcher,
+  createSelectorBlacklistMatcher,
   declarationExists,
   maybeBlacklistedSelector,
   pxRegex,
   remRegex,
   toFixed,
+  walkAndReplaceValues,
 } from 'postcss-plugin-shared'
 import { defaultOptions } from './defaults'
 
@@ -20,7 +22,7 @@ export function createRemReplace(
   minRemValue: number,
   transformUnit = 'px',
 ) {
-  return function (m: string, $1: string) {
+  return function (m: string, $1?: string) {
     if (!$1) {
       return m
     }
@@ -38,8 +40,10 @@ export const blacklistedSelector = maybeBlacklistedSelector
 export {
   createExcludeMatcher,
   createPropListMatcher,
+  createSelectorBlacklistMatcher,
   declarationExists,
   pxRegex,
   remRegex,
   toFixed,
+  walkAndReplaceValues,
 }

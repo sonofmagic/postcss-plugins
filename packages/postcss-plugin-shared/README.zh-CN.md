@@ -51,7 +51,9 @@ pnpm add postcss-plugin-shared
 - `createPropListMatcher`：根据 propList 生成属性匹配函数（支持 `*` 通配）
 - `createAdvancedPropListMatcher`：支持高级 `propList` 语法的属性匹配器（string[]，通配符 + 取反）
 - `createExcludeMatcher`：根据 exclude 生成文件路径排除函数（数组或函数）
+- `createSelectorBlacklistMatcher`：选择器黑名单匹配器（支持缓存）
 - `declarationExists`：用于检测某 rule/decls 中是否已存在相同 `prop/value`，避免重复注入
+- `walkAndReplaceValues`：通用遍历替换逻辑（decl 值与 media params）
 
 ## API 说明
 
