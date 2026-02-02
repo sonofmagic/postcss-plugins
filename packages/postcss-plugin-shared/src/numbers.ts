@@ -1,3 +1,9 @@
+/**
+ * Round a number with fixed precision while preserving the sign.
+ *
+ * @example
+ * toFixed(1.005, 2) // 1.01
+ */
 export function toFixed(number: number, precision: number) {
   if (number === 0) {
     return 0

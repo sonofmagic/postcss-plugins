@@ -1,5 +1,19 @@
 // excluding regex trick: http://www.rexegg.com/regex-best-trick.html
 
+/**
+ * Options for creating a unit-matching regex.
+ *
+ * Defaults:
+ * - numberPattern: `\\d+(?:\\.\\d+)?|\\.\\d+`
+ * - skipDoubleQuotes: true
+ * - skipSingleQuotes: true
+ * - skipUrl: true
+ * - skipVar: true
+ * - ignoreCase: false
+ *
+ * @example
+ * const regex = createUnitRegex({ units: ['rem', 'vw'] })
+ */
 export interface UnitRegexOptions {
   units: readonly string[]
   numberPattern?: string
@@ -10,6 +24,14 @@ export interface UnitRegexOptions {
   ignoreCase?: boolean
 }
 
+/**
+ * Build a regex that matches numeric values with specific units, while
+ * skipping quoted strings, url(...), and var(...).
+ *
+ * @example
+ * const regex = createUnitRegex({ units: ['px'] })
+ * '1px 2px'.replace(regex, (m) => m)
+ */
 export function createUnitRegex(options: UnitRegexOptions) {
   const {
     units,
@@ -41,8 +63,20 @@ export function createUnitRegex(options: UnitRegexOptions) {
   return new RegExp(parts.join('|'), `g${ignoreCase ? 'i' : ''}`)
 }
 
+/**
+ * Regex matching rem values with the default unit regex options.
+ *
+ * @example
+ * remRegex.test('1rem')
+ */
 export const remRegex
   = createUnitRegex({ units: ['rem'] })
 
+/**
+ * Regex matching px values with the default unit regex options.
+ *
+ * @example
+ * pxRegex.test('1px')
+ */
 export const pxRegex
   = createUnitRegex({ units: ['px'] })

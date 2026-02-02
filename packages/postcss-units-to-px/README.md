@@ -59,6 +59,25 @@ Type: `(value, unit, context) => number`
 
 Global conversion function used when a unit does not have a per-unit rule (or when that rule is `null`).
 
+Signature:
+
+```ts
+type Transform = (value: number, unit: string, context: TransformContext) => number
+```
+
+Example:
+
+```ts
+const plugin = unitsToPx({
+  transform(value, unit, context) {
+    if (unit === 'em' && context.prop === 'letter-spacing') {
+      return value * 12
+    }
+    return value * 16
+  },
+})
+```
+
 ### unitPrecision
 
 Type: `number`

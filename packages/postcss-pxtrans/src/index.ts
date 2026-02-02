@@ -114,6 +114,32 @@ function createPxReplace(
 
 const postcssPlugin = 'postcss-pxtrans'
 
+/**
+ * Convert px (and rpx) to target units based on platform rules.
+ *
+ * Defaults:
+ * - platform: 'weapp'
+ * - designWidth: 750
+ * - deviceRatio: { 375: 2, 640: 1.17, 750: 1, 828: 0.905 }
+ * - methods: ['platform', 'size']
+ * - targetUnit: 'rpx' (weapp), 'rem' (h5)
+ * - unitPrecision: 5
+ * - propList: ['*']
+ * - replace: true
+ * - mediaQuery: false
+ * - minPixelValue: 0
+ * - onePxTransform: true
+ *
+ * @example
+ * import postcss from 'postcss'
+ * import pxtrans from 'postcss-pxtrans'
+ *
+ * const result = await postcss([pxtrans({
+ *   platform: 'h5',
+ *   designWidth: 375,
+ *   targetUnit: 'vw',
+ * })]).process('.a{padding:16px}', { from: undefined })
+ */
 function plugin(userOptions: PxTransformOptions = {}) {
   const options: Required<Pick<PxTransformOptions, 'platform' | 'designWidth' | 'deviceRatio'>> & PxTransformOptions = {
     ...DEFAULT_WEAPP_OPTIONS,

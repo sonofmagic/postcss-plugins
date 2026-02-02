@@ -7,6 +7,29 @@ import {
   walkAndReplaceValues,
 } from './shared'
 
+/**
+ * Convert rem to viewport units (vw by default).
+ *
+ * Defaults:
+ * - rootValue: 375
+ * - unitPrecision: 16
+ * - propList: ['font', 'font-size', 'line-height', 'letter-spacing']
+ * - replace: true
+ * - mediaQuery: false
+ * - minRemValue: 0
+ * - exclude: [/node_modules/i]
+ * - transformUnit: 'vw'
+ * - disabled: false
+ *
+ * @example
+ * import postcss from 'postcss'
+ * import remToViewport from 'postcss-rem-to-viewport'
+ *
+ * const result = await postcss([remToViewport({
+ *   rootValue: 375,
+ *   transformUnit: 'vw',
+ * })]).process('.a{font-size:1rem}', { from: undefined })
+ */
 const plugin: PostcssRemToViewport = (
   options: UserDefinedOptions = {},
 ) => {

@@ -25,6 +25,14 @@
   "exports": {
     ".": "./src/index.ts"
   },
+  "typesVersions": {
+    "<4.7": {
+      "*": [
+        "./dist/*",
+        "./dist/index.d.ts"
+      ]
+    }
+  },
   "files": [
     "dist"
   ],
@@ -47,7 +55,10 @@
   "publishConfig": {
     "exports": {
       ".": {
-        "types": "./dist/index.d.ts",
+        "types": {
+          "import": "./dist/index.d.mts",
+          "require": "./dist/index.d.ts"
+        },
         "import": "./dist/index.mjs",
         "require": "./dist/index.cjs"
       }

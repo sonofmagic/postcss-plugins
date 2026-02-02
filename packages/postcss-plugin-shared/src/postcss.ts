@@ -12,6 +12,12 @@ import {
   createSelectorBlacklistMatcher,
 } from './selectors'
 
+/**
+ * Check whether a declaration with the same property and value already exists.
+ *
+ * @example
+ * if (declarationExists(rule, 'margin', '16px')) return
+ */
 export function declarationExists(
   decls: { some: (cb: (node: ChildNode) => boolean) => boolean },
   prop: string,
@@ -26,6 +32,12 @@ export function declarationExists(
   })
 }
 
+/**
+ * Context passed to value replacers during traversal.
+ *
+ * @example
+ * const replacer = (context: ReplaceContext) => (m) => m
+ */
 export interface ReplaceContext {
   root: Root
   input: Input
@@ -37,6 +49,24 @@ export interface ReplaceContext {
   selector?: string
 }
 
+/**
+ * Options for walking declarations and replacing unit values.
+ *
+ * Defaults:
+ * - selectorBlackList: []
+ * - exclude: []
+ * - replace: true
+ * - skipDuplicate: true
+ * - mediaQuery: false
+ *
+ * @example
+ * walkAndReplaceValues({
+ *   root,
+ *   unitRegex: /\\d+px/g,
+ *   propList: ['*'],
+ *   createReplacer: () => (m) => m,
+ * })
+ */
 export interface WalkAndReplaceOptions {
   root: Root
   unitRegex: RegExp
@@ -51,6 +81,17 @@ export interface WalkAndReplaceOptions {
   shouldProcessAtRule?: (atRule: AtRule) => boolean
 }
 
+/**
+ * Walk declarations and @media params, replacing unit values with a custom replacer.
+ *
+ * @example
+ * walkAndReplaceValues({
+ *   root,
+ *   unitRegex: /\\d+rem/g,
+ *   propList: ['*'],
+ *   createReplacer: () => (m) => m.replace('rem', 'px'),
+ * })
+ */
 export function walkAndReplaceValues(options: WalkAndReplaceOptions) {
   const {
     root,

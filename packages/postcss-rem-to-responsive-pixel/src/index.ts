@@ -9,6 +9,30 @@ import {
 } from './shared'
 
 export * from './types'
+/**
+ * Convert rem to responsive pixels (px or rpx).
+ *
+ * Defaults:
+ * - rootValue: 16
+ * - unitPrecision: 5
+ * - propList: ['font', 'font-size', 'line-height', 'letter-spacing']
+ * - replace: true
+ * - mediaQuery: false
+ * - minRemValue: 0
+ * - exclude: [/node_modules/i]
+ * - transformUnit: 'px'
+ * - processorStage: 'Once'
+ * - disabled: false
+ *
+ * @example
+ * import postcss from 'postcss'
+ * import remToResponsivePixel from 'postcss-rem-to-responsive-pixel'
+ *
+ * const result = await postcss([remToResponsivePixel({
+ *   transformUnit: 'rpx',
+ *   rootValue: 16,
+ * })]).process('.a{font-size:1rem}', { from: undefined })
+ */
 const plugin: PostcssRemToResponsivePixel = (
   options: UserDefinedOptions = {},
 ) => {

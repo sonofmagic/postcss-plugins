@@ -1,5 +1,11 @@
 import type { Rule } from 'postcss'
 
+/**
+ * Check whether a selector matches any blacklist rule.
+ *
+ * @example
+ * blacklistedSelector(['.ignore', /\\.skip-/], '.ignore .btn') // true
+ */
 export function blacklistedSelector(
   blacklist: readonly (string | RegExp)[],
   selector?: string,
@@ -15,6 +21,12 @@ export function blacklistedSelector(
   })
 }
 
+/**
+ * Check whether a selector is blacklisted; returns undefined for non-string selectors.
+ *
+ * @example
+ * maybeBlacklistedSelector(['.ignore'], '.ignore .btn') // true
+ */
 export function maybeBlacklistedSelector(
   blacklist: readonly (string | RegExp)[],
   selector?: string,
@@ -25,10 +37,22 @@ export function maybeBlacklistedSelector(
   return blacklistedSelector(blacklist, selector)
 }
 
+/**
+ * Options for selector blacklist matcher creation.
+ *
+ * @default { cache: true }
+ */
 export interface SelectorBlacklistMatcherOptions {
   cache?: boolean
 }
 
+/**
+ * Create a matcher that checks whether a Rule selector is blacklisted.
+ *
+ * @example
+ * const isBlacklisted = createSelectorBlacklistMatcher(['.ignore'])
+ * isBlacklisted(rule)
+ */
 export function createSelectorBlacklistMatcher(
   blacklist: readonly (string | RegExp)[],
   options: SelectorBlacklistMatcherOptions = {},
@@ -53,6 +77,13 @@ export function createSelectorBlacklistMatcher(
   }
 }
 
+/**
+ * Create a matcher that checks whether a declaration property is included.
+ *
+ * @example
+ * const matchProp = createPropListMatcher(['font', /size/])
+ * matchProp('font-size') // true
+ */
 export function createPropListMatcher(propList: readonly (string | RegExp)[]) {
   const hasWild = propList.includes('*')
   return function satisfyPropList(prop: string) {
@@ -95,6 +126,14 @@ function filterPropList(list: readonly string[]) {
   }
 }
 
+/**
+ * Create a matcher that supports advanced prop list patterns.
+ *
+ * @example
+ * const matchProp = createAdvancedPropListMatcher(['*', '!border*'])
+ * matchProp('padding') // true
+ * matchProp('border-color') // false
+ */
 export function createAdvancedPropListMatcher(propList: readonly string[]) {
   const hasWild = propList.includes('*')
   const matchAll = hasWild && propList.length === 1
@@ -124,6 +163,13 @@ export function createAdvancedPropListMatcher(propList: readonly string[]) {
   }
 }
 
+/**
+ * Create a matcher that checks whether a file path is excluded.
+ *
+ * @example
+ * const isExcluded = createExcludeMatcher([/node_modules/])
+ * isExcluded('/project/node_modules/foo.css') // true
+ */
 export function createExcludeMatcher(
   exclude: (string | RegExp)[] | ((filePath: string) => boolean),
 ) {

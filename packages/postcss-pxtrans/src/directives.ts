@@ -56,6 +56,23 @@ function handleRnEject(comment: Comment) {
   }
 }
 
+/**
+ * Create a PostCSS plugin that handles pxtrans directives such as
+ * `#ifdef`, `#ifndef`, and `postcss-pxtrans rn eject`.
+ *
+ * Defaults:
+ * - platform: 'weapp'
+ * - methods: ['platform', 'size']
+ *
+ * @example
+ * import postcss from 'postcss'
+ * import pxtrans, { createDirectivePlugin } from 'postcss-pxtrans'
+ *
+ * const result = await postcss([
+ *   createDirectivePlugin({ platform: 'rn' }),
+ *   pxtrans({ platform: 'rn' }),
+ * ]).process('/* #ifdef rn *\\/\\n.a{width:16px}\\n/* #endif *\\/', { from: undefined })
+ */
 export function createDirectivePlugin(options: PxTransformOptions = {}) {
   const methods: readonly PxTransformMethod[] = options.methods ?? ['platform', 'size']
   const platform: PxTransformPlatform = options.platform ?? 'weapp'

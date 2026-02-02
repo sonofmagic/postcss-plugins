@@ -84,6 +84,28 @@ function createReplace(
   }
 }
 
+/**
+ * Convert multiple CSS units to px based on a unit map and optional transform.
+ *
+ * Defaults:
+ * - unitMap: { rem: 16, em: 16, vw: 3.75, vh: 6.67, vmin: 3.75, vmax: 6.67, rpx: 0.5 }
+ * - unitPrecision: 5
+ * - propList: ['*']
+ * - replace: true
+ * - mediaQuery: false
+ * - minValue: 0
+ * - exclude: [/node_modules/i]
+ * - disabled: false
+ *
+ * @example
+ * import postcss from 'postcss'
+ * import unitsToPx from 'postcss-units-to-px'
+ *
+ * const result = await postcss([unitsToPx({
+ *   unitMap: { rem: 16, vw: 3.75 },
+ *   transform: (value, unit) => (unit === 'em' ? value * 12 : value * 16),
+ * })]).process('.a{margin:1rem 1vw}', { from: undefined })
+ */
 const plugin: PostcssUnitsToPx = (options: UserDefinedOptions = {}) => {
   const resolved = getConfig(options)
   const {

@@ -13,10 +13,41 @@ import {
 import { name as packageName } from '../package.json'
 import { defaultOptions } from './defaults'
 
+/**
+ * PostCSS plugin name used by this package.
+ *
+ * @default package.json name
+ */
 export const postcssPlugin = packageName
 
+/**
+ * Merge user options with defaults for postcss-rem-to-viewport.
+ *
+ * Defaults:
+ * - rootValue: 375
+ * - unitPrecision: 16
+ * - propList: ['font', 'font-size', 'line-height', 'letter-spacing']
+ * - replace: true
+ * - mediaQuery: false
+ * - minRemValue: 0
+ * - exclude: [/node_modules/i]
+ * - transformUnit: 'vw'
+ * - disabled: false
+ *
+ * @example
+ * const config = getConfig({ rootValue: 375 })
+ */
 export const getConfig = createConfigGetter(defaultOptions)
 
+/**
+ * Create a replacer that converts rem to viewport units.
+ *
+ * @default
+ *
+ * @example
+ * const replace = createRemReplace(375, 16, 0, 'vw')
+ * '1rem'.replace(/(\\d+)(rem)/, (m, $1) => replace(m, $1))
+ */
 export function createRemReplace(
   rootValue: number,
   unitPrecision: number,
@@ -48,6 +79,12 @@ export function createRemReplace(
   }
 }
 
+/**
+ * Alias for selector blacklist matching, returning undefined for non-string selectors.
+ *
+ * @example
+ * blacklistedSelector(['.ignore'], '.ignore .btn') // true
+ */
 export const blacklistedSelector = maybeBlacklistedSelector
 
 export {
