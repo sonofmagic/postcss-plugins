@@ -2,7 +2,8 @@ import type {
   PostcssUnitsToPx,
   TransformContext,
   UnitMap,
-  UnitTransform,
+  UnitMatcher,
+  UnitRule,
   UserDefinedOptions,
 } from './types'
 import { defaultUnitMap } from './defaults'
@@ -14,18 +15,127 @@ import {
   walkAndReplaceValues,
 } from './shared'
 
-type UnitRule = number | UnitTransform | null | false
+interface StringMatcherEntry {
+  matcher: string
+  rule: UnitRule
+  type: 'string'
+  unit: string
+}
 
-function normalizeUnitMap(unitMap: UnitMap) {
+interface RegexMatcherEntry {
+  matcher: RegExp
+  rule: UnitRule
+  type: 'regex'
+}
+
+interface FunctionMatcherEntry {
+  matcher: (unit: string) => boolean
+  rule: UnitRule
+  type: 'function'
+}
+
+type NormalizedMatcher = StringMatcherEntry | RegexMatcherEntry | FunctionMatcherEntry
+
+const DEFAULT_NUMBER_PATTERN = String.raw`\d+(?:\.\d+)?|\.\d+`
+
+function createAnyUnitRegex() {
+  const parts: string[] = [
+    String.raw`"[^"]+"`,
+    String.raw`'[^']+'`,
+    String.raw`url\([^)]+\)`,
+    String.raw`var\([^)]+\)`,
+    String.raw`(${DEFAULT_NUMBER_PATTERN})([a-zA-Z%]+)`,
+  ]
+  return new RegExp(parts.join('|'), 'g')
+}
+
+function normalizeRule(rule: UnitRule | undefined) {
+  return rule === undefined ? null : rule
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return Object.prototype.toString.call(value) === '[object Object]'
+}
+
+function normalizeMatchers(unitMap: UnitMap) {
+  const entries: NormalizedMatcher[] = []
+  const addEntry = (matcher: UnitMatcher, rule: UnitRule | undefined) => {
+    const normalizedRule = normalizeRule(rule)
+    if (typeof matcher === 'string') {
+      const unit = matcher.trim().toLowerCase()
+      if (!unit) {
+        return
+      }
+      entries.push({
+        matcher: unit,
+        rule: normalizedRule,
+        type: 'string',
+        unit,
+      })
+      return
+    }
+    if (matcher instanceof RegExp) {
+      entries.push({
+        matcher,
+        rule: normalizedRule,
+        type: 'regex',
+      })
+      return
+    }
+    if (typeof matcher === 'function') {
+      entries.push({
+        matcher,
+        rule: normalizedRule,
+        type: 'function',
+      })
+    }
+  }
+
+  if (Array.isArray(unitMap)) {
+    for (const entry of unitMap) {
+      if (!entry) {
+        continue
+      }
+      const [matcher, rule] = entry
+      addEntry(matcher, rule)
+    }
+  }
+  else if (unitMap instanceof Map) {
+    for (const [matcher, rule] of unitMap.entries()) {
+      addEntry(matcher, rule)
+    }
+  }
+  else {
+    for (const [unit, rule] of Object.entries(unitMap)) {
+      addEntry(unit, rule as UnitRule | undefined)
+    }
+  }
+
+  const hasComplexMatcher = entries.some(entry => entry.type !== 'string')
+
+  if (hasComplexMatcher) {
+    return {
+      entries,
+      unitMap: undefined,
+      hasComplexMatcher,
+    }
+  }
+
   const normalized = new Map<string, UnitRule>()
-  for (const [unit, rule] of Object.entries(unitMap)) {
-    const key = unit.trim().toLowerCase()
-    if (!key) {
+  for (const entry of entries) {
+    if (entry.type !== 'string') {
       continue
     }
-    normalized.set(key, rule ?? null)
+    if (!normalized.has(entry.unit)) {
+      normalized.set(entry.unit, entry.rule)
+    }
   }
-  return normalized
+
+  return {
+    entries,
+    unitMap: normalized,
+    hasComplexMatcher,
+  }
 }
 
 function getUnitsForRegex(unitMap: Map<string, UnitRule>) {
@@ -33,7 +143,7 @@ function getUnitsForRegex(unitMap: Map<string, UnitRule>) {
 }
 
 function createReplace(
-  unitMap: Map<string, UnitRule>,
+  getRule: (unit: string) => UnitRule | undefined,
   unitPrecision: number,
   minValue: number,
   transform: UserDefinedOptions['transform'],
@@ -41,7 +151,7 @@ function createReplace(
 ) {
   const shouldRound = unitPrecision >= 0 && unitPrecision <= 100
 
-  return function replace(m: string, $1?: string) {
+  return function replace(m: string, $1?: string, $2?: string) {
     if (!$1) {
       return m
     }
@@ -55,9 +165,13 @@ function createReplace(
       return m
     }
 
-    const unit = m.slice($1.length).toLowerCase()
-    const rule = unitMap.get(unit)
+    const unit = (typeof $2 === 'string' ? $2 : m.slice($1.length)).toLowerCase()
+    const rule = getRule(unit)
     let pxValue: number | undefined
+
+    if (rule === undefined) {
+      return m
+    }
 
     if (rule === false) {
       return m
@@ -125,22 +239,64 @@ const plugin: PostcssUnitsToPx = (options: UserDefinedOptions = {}) => {
     disabled,
   } = resolved
 
-  const mergedUnitMap = {
-    ...defaultUnitMap,
-    ...(options.unitMap ?? {}),
-  }
+  const userUnitMap = options.unitMap
+  const mergedUnitMap: UnitMap = userUnitMap === undefined
+    ? defaultUnitMap
+    : isPlainObject(userUnitMap)
+      ? {
+          ...defaultUnitMap,
+          ...userUnitMap,
+        }
+      : userUnitMap
 
   if (disabled || transform === false) {
     return { postcssPlugin }
   }
 
-  const normalizedUnitMap = normalizeUnitMap(mergedUnitMap)
-  const units = getUnitsForRegex(normalizedUnitMap)
-  if (units.length === 0) {
+  const { entries, unitMap: normalizedUnitMap, hasComplexMatcher } = normalizeMatchers(mergedUnitMap)
+  if (entries.length === 0) {
     return { postcssPlugin }
   }
 
-  const unitRegex = createUnitRegex({ units })
+  let unitRegex: RegExp
+  let getRule: (unit: string) => UnitRule | undefined
+
+  if (hasComplexMatcher) {
+    unitRegex = createAnyUnitRegex()
+    getRule = (unit) => {
+      for (const entry of entries) {
+        if (entry.type === 'string') {
+          if (entry.unit === unit) {
+            return entry.rule
+          }
+          continue
+        }
+        if (entry.type === 'regex') {
+          if (entry.matcher.global || entry.matcher.sticky) {
+            entry.matcher.lastIndex = 0
+          }
+          if (entry.matcher.test(unit)) {
+            return entry.rule
+          }
+          continue
+        }
+        if (entry.type === 'function') {
+          if (entry.matcher(unit)) {
+            return entry.rule
+          }
+        }
+      }
+      return undefined
+    }
+  }
+  else {
+    const units = getUnitsForRegex(normalizedUnitMap ?? new Map())
+    if (units.length === 0) {
+      return { postcssPlugin }
+    }
+    unitRegex = createUnitRegex({ units })
+    getRule = unit => normalizedUnitMap?.get(unit)
+  }
 
   return {
     postcssPlugin,
@@ -155,7 +311,7 @@ const plugin: PostcssUnitsToPx = (options: UserDefinedOptions = {}) => {
         mediaQuery,
         createReplacer: (context) => {
           return createReplace(
-            normalizedUnitMap,
+            getRule,
             unitPrecision,
             minValue,
             transform,

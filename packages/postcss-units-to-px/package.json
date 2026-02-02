@@ -31,6 +31,14 @@
       },
       "import": "./dist/index.mjs",
       "require": "./dist/index.cjs"
+    },
+    "./defaults": {
+      "types": {
+        "import": "./dist/defaults.d.mts",
+        "require": "./dist/defaults.d.cts"
+      },
+      "import": "./dist/defaults.mjs",
+      "require": "./dist/defaults.cjs"
     }
   },
   "main": "./dist/index.cjs",

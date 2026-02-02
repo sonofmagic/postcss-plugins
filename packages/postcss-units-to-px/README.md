@@ -47,11 +47,25 @@ const defaultOptions = {
 
 ### unitMap
 
-Type: `Record<string, number | (value, context) => number | null | false>`
+Type: `Record<string, number | (value, context) => number | null | false> | Map<string | RegExp | (unit) => boolean, number | (value, context) => number | null | false> | Array<[string | RegExp | (unit) => boolean, number | (value, context) => number | null | false]>`
 
 Per-unit conversion rules. A numeric value is treated as a multiplier (e.g. `1rem * 16 = 16px`). A function should return the final px value. If the rule is `null`, the plugin will fall back to the global `transform` (if provided). If the rule is `false`, the value is left unchanged even when `transform` is provided.
 
-Note: `unitMap` merges with defaults. To override a unit, set that key explicitly.
+Note: `unitMap` merges with defaults only when it is a plain object. When using `Map` or `Array`, defaults are not merged.
+For `Map`/`Array`, rules are applied in order and the first match wins.
+
+You can import `defaultUnitMap` to build a `Map` with defaults:
+
+```ts
+import unitsToPx from 'postcss-units-to-px'
+import { defaultUnitMap } from 'postcss-units-to-px/defaults'
+
+const unitMap = new Map(Object.entries(defaultUnitMap))
+unitMap.set(/^v/, 3.75)
+unitMap.set(unit => unit.endsWith('rpx'), false)
+
+postcss(unitsToPx({ unitMap }))
+```
 
 ### transform
 

@@ -2,4 +2,4 @@
 "postcss-units-to-px": minor
 ---
 
-Add `false` support for `unitMap` and `transform` to skip conversions.
+Add matcher-based `unitMap` support plus `false` rules/transform to skip conversions. Expose `defaultUnitMap` via the `postcss-units-to-px/defaults` subpath.

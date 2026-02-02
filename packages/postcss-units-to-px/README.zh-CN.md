@@ -47,11 +47,25 @@ const defaultOptions = {
 
 ### unitMap
 
-类型: `Record<string, number | (value, context) => number | null | false>`
+类型: `Record<string, number | (value, context) => number | null | false> | Map<string | RegExp | (unit) => boolean, number | (value, context) => number | null | false> | Array<[string | RegExp | (unit) => boolean, number | (value, context) => number | null | false]>`
 
 单位转换规则。数值表示倍率（例如 `1rem * 16 = 16px`）。函数需要返回最终 px 值。若某个单位规则为 `null`，则会回退使用全局 `transform`。若规则为 `false`，则保持原值，即使存在全局 `transform`。
 
-注意：`unitMap` 会与默认值合并，覆盖时请显式写出对应的单位。
+注意：`unitMap` 仅在传入普通对象时与默认值合并；使用 `Map` 或 `Array` 时不会合并默认值。
+对于 `Map`/`Array`，规则按顺序匹配，命中第一个即停止。
+
+你可以通过导出的 `defaultUnitMap` 快速构建带默认值的 `Map`：
+
+```ts
+import unitsToPx from 'postcss-units-to-px'
+import { defaultUnitMap } from 'postcss-units-to-px/defaults'
+
+const unitMap = new Map(Object.entries(defaultUnitMap))
+unitMap.set(/^v/, 3.75)
+unitMap.set(unit => unit.endsWith('rpx'), false)
+
+postcss(unitsToPx({ unitMap }))
+```
 
 ### transform
 

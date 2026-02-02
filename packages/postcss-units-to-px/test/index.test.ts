@@ -90,6 +90,36 @@ describe('postcss-units-to-px', () => {
     expect(processed).toBe(input)
   })
 
+  it('does not merge defaults when unitMap is a Map', () => {
+    const input = '.rule { font-size: 1rem; letter-spacing: 1em; }'
+    const output = '.rule { font-size: 10px; letter-spacing: 1em; }'
+    const unitMap = new Map([['rem', 10]])
+    const processed = postcss(
+      unitsToPx({
+        unitMap,
+      }),
+    ).process(input).css
+
+    expect(processed).toBe(output)
+  })
+
+  it('supports matcher rules in array form with order precedence', () => {
+    const input = '.rule { font-size: 1rem; margin: 1vw; }'
+    const output = '.rule { font-size: 20px; margin: 3px; }'
+    const unitMap: Array<[string | RegExp | ((unit: string) => boolean), number]> = [
+      [/^r/, 20],
+      ['rem', 10],
+      [(unit: string) => unit.startsWith('v'), 3],
+    ]
+    const processed = postcss(
+      unitsToPx({
+        unitMap,
+      }),
+    ).process(input).css
+
+    expect(processed).toBe(output)
+  })
+
   it('respects propList and replace=false behavior', () => {
     const input = '.rule { font-size: 1rem; margin: 1rem; }'
     const output = '.rule { font-size: 1rem; font-size: 16px; margin: 1rem; }'

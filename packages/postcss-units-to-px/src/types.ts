@@ -58,11 +58,20 @@ export type GlobalTransform = (
  *   vh: (value) => value * 6.67,
  * }
  */
-export type UnitMap = Record<string, number | UnitTransform | null | false>
+export type UnitRule = number | UnitTransform | null | false
+
+export type UnitMatcher = string | RegExp | ((unit: string) => boolean)
+
+export type UnitMap
+  = Record<string, UnitRule>
+    | Map<UnitMatcher, UnitRule>
+    | Array<[UnitMatcher, UnitRule]>
 
 export interface UserDefinedOptions {
   /**
    * Per-unit conversion rules. Numeric values are multipliers.
+   * Supports object, Map, or Array matcher forms. Map/Array are matched
+   * in order and do not merge with defaults.
    *
    * @default
    * {
