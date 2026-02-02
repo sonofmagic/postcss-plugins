@@ -72,4 +72,30 @@ describe('exclude & misc', () => {
     })
     expect(processed).toBe('.rule{border:1px solid #000}')
   })
+
+  it('should keep full precision when unitPrecision is out of range', () => {
+    const processed = transform('.rule{width:1px}', {
+      platform: 'h5',
+      designWidth: 750,
+      rootValue: 3,
+      unitPrecision: -1,
+    })
+    expect(processed).toBe('.rule{width:0.3333333333333333rem}')
+  })
+
+  it('should fall back to deviceRatio=1 when designWidth is missing', () => {
+    let called = false
+    const processed = transform('.rule{width:10px}', {
+      platform: 'weapp',
+      designWidth() {
+        called = true
+        return 320
+      },
+      deviceRatio: {
+        750: 1,
+      },
+    })
+    expect(called).toBe(true)
+    expect(processed).toBe('.rule{width:10rpx}')
+  })
 })

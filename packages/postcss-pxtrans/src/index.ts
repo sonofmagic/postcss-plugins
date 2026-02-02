@@ -60,7 +60,7 @@ function normalizeRootValue(value: unknown): RootValueFn {
 }
 
 function createRoundWithPrecision(precision: number) {
-  if (precision < 0 || precision > 100) {
+  if (!Number.isFinite(precision) || precision < 0 || precision > 100) {
     return (value: number) => value
   }
   const multiplier = 10 ** (precision + 1)
@@ -105,10 +105,7 @@ function createPxReplace(
       }
 
       let val = pixels / rootValue(input, m, $1)
-      /* c8 ignore next */
-      if (unitPrecision >= 0 && unitPrecision <= 100) {
-        val = roundWithPrecision(val)
-      }
+      val = roundWithPrecision(val)
       // 不带单位不支持在calc表达式中参与计算(https://github.com/NervJS/taro/issues/12607)
       return `${val}${targetUnit}`
     }

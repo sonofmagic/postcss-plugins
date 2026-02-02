@@ -1,3 +1,4 @@
+/* c8 ignore file */
 import type { Input } from 'postcss'
 
 export type PxTransformMethod = 'platform' | 'size'

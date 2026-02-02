@@ -13,6 +13,7 @@ import {
   pxRegex,
   remRegex,
   toFixed,
+  walkAndReplaceValues,
 } from '@/index'
 
 describe('postcss-plugin-shared', () => {
@@ -130,6 +131,32 @@ describe('postcss-plugin-shared', () => {
 
       expect(output).toBe('a:var(--x,4PX);b:5PX;')
     })
+
+    it('createUnitRegex can opt out of quote/url skipping', () => {
+      const re = createUnitRegex({
+        units: ['px'],
+        skipDoubleQuotes: false,
+        skipSingleQuotes: false,
+        skipUrl: false,
+        skipVar: false,
+      })
+      const input = `a:"1px";b:'2px';c:url(3px);d:var(--x,4px);e:5px;`
+      const output = input.replace(re, (match, value?: string) => {
+        return value ? `${value}PX` : match
+      })
+
+      expect(output).toBe(`a:"1PX";b:'2PX';c:url(3PX);d:var(--x,4PX);e:5PX;`)
+    })
+
+    it('createUnitRegex supports ignoreCase matching', () => {
+      const re = createUnitRegex({ units: ['px'], ignoreCase: true })
+      const input = 'a:1PX;b:2px;'
+      const output = input.replace(re, (match, value?: string) => {
+        return value ? `${value}PX` : match
+      })
+
+      expect(output).toBe('a:1PX;b:2PX;')
+    })
   })
 
   describe('selectors', () => {
@@ -191,6 +218,22 @@ describe('postcss-plugin-shared', () => {
       expect(matcher(secondRule)).toBe(false)
     })
 
+    it('createSelectorBlacklistMatcher handles empty blacklist and no cache', () => {
+      const root = postcss.parse('.skip { color: red; }')
+      const rule = root.nodes[0] as any
+      const matcher = createSelectorBlacklistMatcher([], { cache: false })
+
+      expect(matcher(rule)).toBe(false)
+    })
+
+    it('createSelectorBlacklistMatcher works without cache', () => {
+      const root = postcss.parse('.skip { color: red; }')
+      const rule = root.nodes[0] as any
+      const matcher = createSelectorBlacklistMatcher(['.skip'], { cache: false })
+
+      expect(matcher(rule)).toBe(true)
+    })
+
     it('createAdvancedPropListMatcher supports include/exclude patterns', () => {
       const matcher = createAdvancedPropListMatcher([
         '*',
@@ -206,6 +249,249 @@ describe('postcss-plugin-shared', () => {
       expect(matcher('margin-left')).toBe(true)
       expect(matcher('padding-left')).toBe(false)
       expect(matcher('border')).toBe(false)
+    })
+
+    it('createAdvancedPropListMatcher covers exact and negated patterns', () => {
+      const matcher = createAdvancedPropListMatcher([
+        '*',
+        'exact',
+        'start*',
+        '*end',
+        '*mid*',
+        '!block',
+        '!*nope*',
+        '!prefix*',
+        '!*suffix',
+      ])
+
+      expect(matcher('exact')).toBe(true)
+      expect(matcher('start-here')).toBe(true)
+      expect(matcher('the-end')).toBe(true)
+      expect(matcher('xmidy')).toBe(true)
+      expect(matcher('block')).toBe(false)
+      expect(matcher('xxnopeyy')).toBe(false)
+      expect(matcher('prefixValue')).toBe(false)
+      expect(matcher('valuesuffix')).toBe(false)
+    })
+
+    it('createAdvancedPropListMatcher returns true when only wildcard provided', () => {
+      const matcher = createAdvancedPropListMatcher(['*'])
+      expect(matcher('anything')).toBe(true)
+    })
+
+    it('createAdvancedPropListMatcher covers endWith without wildcard', () => {
+      const matcher = createAdvancedPropListMatcher(['*end'])
+      expect(matcher('line-end')).toBe(true)
+      expect(matcher('line-start')).toBe(false)
+    })
+  })
+
+  describe('walkAndReplaceValues', () => {
+    const unitRegex = createUnitRegex({ units: ['rem'] })
+
+    it('returns early when root has no input', () => {
+      const root = postcss.root()
+      let called = false
+      walkAndReplaceValues({
+        root,
+        unitRegex,
+        propList: ['*'],
+        createReplacer: () => {
+          called = true
+          return m => m
+        },
+      })
+
+      expect(called).toBe(false)
+    })
+
+    it('skips excluded files', () => {
+      const root = postcss.parse('.rule{width:1rem}', { from: '/src/skip.css' })
+      walkAndReplaceValues({
+        root,
+        unitRegex,
+        propList: ['*'],
+        exclude: ['skip.css'],
+        createReplacer: () => (_m, value) => `${value}px`,
+      })
+
+      expect(root.toString()).toBe('.rule{width:1rem}')
+    })
+
+    it('respects propList and shouldProcessDecl', () => {
+      const root = postcss.parse('.rule{width:1rem;height:1rem}')
+      walkAndReplaceValues({
+        root,
+        unitRegex,
+        propList: ['height'],
+        shouldProcessDecl: () => false,
+        createReplacer: () => (_m, value) => `${value}PX`,
+      })
+
+      expect(root.toString()).toBe('.rule{width:1rem;height:1rem}')
+    })
+
+    it('continues when shouldProcessDecl returns true but no unit matches', () => {
+      const root = postcss.parse('.rule{width:1em}')
+      walkAndReplaceValues({
+        root,
+        unitRegex,
+        propList: ['width'],
+        shouldProcessDecl: () => true,
+        createReplacer: () => (_m, value) => `${value}PX`,
+      })
+
+      expect(root.toString()).toBe('.rule{width:1em}')
+    })
+
+    it('uses context without filePath when missing', () => {
+      const root = postcss.parse('.rule{width:1rem}')
+      const seen: Array<string | undefined> = []
+      walkAndReplaceValues({
+        root,
+        unitRegex,
+        propList: ['*'],
+        createReplacer: (context) => {
+          seen.push(context.filePath)
+          return (_m, value) => `${Number(value) * 2}px`
+        },
+      })
+
+      expect(seen).toEqual([undefined])
+      expect(root.toString()).toBe('.rule{width:2px}')
+    })
+
+    it('includes filePath in context when available', () => {
+      const root = postcss.parse('.rule{width:1rem}', { from: '/src/keep.css' })
+      const seen: Array<string | undefined> = []
+      walkAndReplaceValues({
+        root,
+        unitRegex,
+        propList: ['*'],
+        createReplacer: (context) => {
+          seen.push(context.filePath)
+          return (_m, value) => `${Number(value) * 2}px`
+        },
+      })
+
+      expect(seen).toEqual(['/src/keep.css'])
+      expect(root.toString()).toBe('.rule{width:2px}')
+    })
+
+    it('skips duplicate declarations when enabled', () => {
+      const root = postcss.parse('.rule{width:1rem;width:2px}')
+      walkAndReplaceValues({
+        root,
+        unitRegex,
+        propList: ['*'],
+        createReplacer: () => (_m, value) => `${Number(value) * 2}px`,
+      })
+
+      expect(root.toString()).toBe('.rule{width:1rem;width:2px}')
+    })
+
+    it('allows duplicates when skipDuplicate is false', () => {
+      const root = postcss.parse('.rule{width:1rem;width:2px}')
+      walkAndReplaceValues({
+        root,
+        unitRegex,
+        propList: ['*'],
+        skipDuplicate: false,
+        createReplacer: () => (_m, value) => `${Number(value) * 2}px`,
+      })
+
+      expect(root.toString()).toBe('.rule{width:2px;width:2px}')
+    })
+
+    it('clones declarations when replace is false', () => {
+      const root = postcss.parse('.rule{width:1rem}')
+      walkAndReplaceValues({
+        root,
+        unitRegex,
+        propList: ['*'],
+        replace: false,
+        createReplacer: () => (_m, value) => `${Number(value) * 2}px`,
+      })
+
+      expect(root.toString()).toBe('.rule{width:1rem;width:2px}')
+    })
+
+    it('skips when replacer does not change the value', () => {
+      const root = postcss.parse('.rule{width:1rem}')
+      walkAndReplaceValues({
+        root,
+        unitRegex,
+        propList: ['*'],
+        createReplacer: () => _m => _m,
+      })
+
+      expect(root.toString()).toBe('.rule{width:1rem}')
+    })
+
+    it('respects selector blacklist', () => {
+      const root = postcss.parse('.skip{width:1rem}.keep{width:1rem}')
+      walkAndReplaceValues({
+        root,
+        unitRegex,
+        propList: ['*'],
+        selectorBlackList: ['.skip'],
+        createReplacer: () => (_m, value) => `${Number(value) * 2}px`,
+      })
+
+      expect(root.toString()).toBe('.skip{width:1rem}.keep{width:2px}')
+    })
+
+    it('processes media params when enabled', () => {
+      const root = postcss.parse('@media (min-width: 10rem) {.rule{width:1rem}}')
+      walkAndReplaceValues({
+        root,
+        unitRegex,
+        propList: ['*'],
+        mediaQuery: true,
+        createReplacer: () => (_m, value) => `${Number(value) * 2}px`,
+      })
+
+      expect(root.toString()).toBe('@media (min-width: 20px) {.rule{width:2px}}')
+    })
+
+    it('respects shouldProcessAtRule and skips params without units', () => {
+      const root = postcss.parse('@media (min-width: 10em) {.rule{width:1rem}}')
+      walkAndReplaceValues({
+        root,
+        unitRegex,
+        propList: ['*'],
+        mediaQuery: true,
+        shouldProcessAtRule: () => false,
+        createReplacer: () => (_m, value) => `${Number(value) * 2}px`,
+      })
+
+      expect(root.toString()).toBe('@media (min-width: 10em) {.rule{width:2px}}')
+    })
+
+    it('skips media params without matching units', () => {
+      const root = postcss.parse('@media (min-width: 10px) {.rule{width:1rem}}')
+      walkAndReplaceValues({
+        root,
+        unitRegex,
+        propList: ['*'],
+        mediaQuery: true,
+        createReplacer: () => (_m, value) => `${Number(value) * 2}px`,
+      })
+
+      expect(root.toString()).toBe('@media (min-width: 10px) {.rule{width:2px}}')
+    })
+
+    it('does not update media params when replacer returns same value', () => {
+      const root = postcss.parse('@media (min-width: 10rem) {.rule{width:1rem}}')
+      walkAndReplaceValues({
+        root,
+        unitRegex,
+        propList: ['*'],
+        mediaQuery: true,
+        createReplacer: () => _m => _m,
+      })
+
+      expect(root.toString()).toBe('@media (min-width: 10rem) {.rule{width:1rem}}')
     })
   })
 })

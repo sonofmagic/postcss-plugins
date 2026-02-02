@@ -331,6 +331,27 @@ describe('exclude and rootValue function', () => {
   })
 })
 
+describe('processorStage and input guards', () => {
+  it('should run when processorStage is OnceExit', () => {
+    const input = '.rule { font-size: 1rem; }'
+    const output = '.rule { font-size: 16px; }'
+    const processed = postcss(
+      remToPx({
+        processorStage: 'OnceExit',
+      }),
+    ).process(input).css
+
+    expect(processed).toBe(output)
+  })
+
+  it('should no-op when input is missing', () => {
+    const root = postcss.root()
+    const plugin = remToPx({}) as any
+
+    expect(() => plugin.Once(root)).not.toThrow()
+  })
+})
+
 // describe('filter-prop-list', function () {
 //   it('should find "exact" matches from propList', function () {
 //     const propList = [

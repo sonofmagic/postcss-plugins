@@ -52,6 +52,19 @@ describe('postcss-units-to-px', () => {
     expect(processed).toBe(output)
   })
 
+  it('leaves values unchanged when unit rule is null without transform', () => {
+    const input = '.rule { font-size: 1rem; }'
+    const processed = postcss(
+      unitsToPx({
+        unitMap: {
+          rem: null,
+        },
+      }),
+    ).process(input).css
+
+    expect(processed).toBe(input)
+  })
+
   it('respects propList and replace=false behavior', () => {
     const input = '.rule { font-size: 1rem; margin: 1rem; }'
     const output = '.rule { font-size: 1rem; font-size: 16px; margin: 1rem; }'
@@ -115,5 +128,92 @@ describe('postcss-units-to-px', () => {
     const processed = postcss(unitsToPx()).process(input).css
 
     expect(processed).toBe(output)
+  })
+
+  it('respects minValue and returns unitless zero', () => {
+    const input = '.rule { font-size: 0.01rem; margin: 1rem; }'
+    const output = '.rule { font-size: 0; margin: 16px; }'
+    const processed = postcss(
+      unitsToPx({
+        unitPrecision: 0,
+        minValue: 0,
+      }),
+    ).process(input).css
+
+    expect(processed).toBe(output)
+  })
+
+  it('skips values below minValue', () => {
+    const input = '.rule { font-size: 0.1rem; margin: 1rem; }'
+    const output = '.rule { font-size: 0.1rem; margin: 16px; }'
+    const processed = postcss(
+      unitsToPx({
+        minValue: 0.5,
+      }),
+    ).process(input).css
+
+    expect(processed).toBe(output)
+  })
+
+  it('bypasses rounding when unitPrecision is out of range', () => {
+    const input = '.rule { font-size: 1rem; }'
+    const output = '.rule { font-size: 0.3333333333333333px; }'
+    const processed = postcss(
+      unitsToPx({
+        unitPrecision: 101,
+        unitMap: {
+          rem: value => value / 3,
+        },
+      }),
+    ).process(input).css
+
+    expect(processed).toBe(output)
+  })
+
+  it('skips invalid unit mappings while keeping defaults', () => {
+    const input = '.rule { font-size: 1rem; }'
+    const processed = postcss(
+      unitsToPx({
+        unitMap: {
+          '   ': 10,
+        },
+      }),
+    ).process(input).css
+
+    expect(processed).toBe('.rule { font-size: 16px; }')
+  })
+
+  it('keeps original when transform returns undefined or NaN', () => {
+    const input = '.rule { font-size: 1rem; }'
+    const processedUndefined = postcss(
+      unitsToPx({
+        unitMap: {
+          rem: () => undefined as unknown as number,
+        },
+      }),
+    ).process(input).css
+
+    expect(processedUndefined).toBe(input)
+
+    const processedNaN = postcss(
+      unitsToPx({
+        unitMap: {
+          rem: () => Number.NaN,
+        },
+      }),
+    ).process(input).css
+
+    expect(processedNaN).toBe(input)
+  })
+
+  it('does nothing when disabled', () => {
+    const input = '.rule { font-size: 1rem; }'
+    const processed = postcss(
+      unitsToPx({
+        disabled: true,
+      }),
+    ).process(input).css
+
+    expect(processed).toBe(input)
   })
 })

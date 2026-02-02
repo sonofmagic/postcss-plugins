@@ -66,6 +66,20 @@ describe('createRemReplace', () => {
 
     expect(output).toBe('0')
   })
+
+  it('rounds with unitPrecision 0', () => {
+    const replace = createRemReplace(375, 0, 0)
+    const output = '0.3rem'.replace(remRegex, replace)
+
+    expect(output).toBe('1vw')
+  })
+
+  it('returns unitless zero when rounded value becomes 0', () => {
+    const replace = createRemReplace(375, 0, 0)
+    const output = '0.01rem'.replace(remRegex, replace)
+
+    expect(output).toBe('0')
+  })
 })
 
 describe('declarationExists', () => {
