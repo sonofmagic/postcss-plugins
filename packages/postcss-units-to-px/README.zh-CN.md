@@ -47,17 +47,17 @@ const defaultOptions = {
 
 ### unitMap
 
-类型: `Record<string, number | (value, context) => number | null>`
+类型: `Record<string, number | (value, context) => number | null | false>`
 
-单位转换规则。数值表示倍率（例如 `1rem * 16 = 16px`）。函数需要返回最终 px 值。若某个单位规则为 `null`，则会回退使用全局 `transform`。
+单位转换规则。数值表示倍率（例如 `1rem * 16 = 16px`）。函数需要返回最终 px 值。若某个单位规则为 `null`，则会回退使用全局 `transform`。若规则为 `false`，则保持原值，即使存在全局 `transform`。
 
 注意：`unitMap` 会与默认值合并，覆盖时请显式写出对应的单位。
 
 ### transform
 
-类型: `(value, unit, context) => number`
+类型: `((value, unit, context) => number) | false`
 
-当某个单位未定义规则（或规则为 `null`）时使用的全局转换函数。
+当某个单位未定义规则（或规则为 `null`）时使用的全局转换函数。设为 `false` 表示全部单位都不转换。
 
 ### unitPrecision
 

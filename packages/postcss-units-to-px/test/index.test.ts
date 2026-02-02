@@ -65,6 +65,31 @@ describe('postcss-units-to-px', () => {
     expect(processed).toBe(input)
   })
 
+  it('leaves values unchanged when unit rule is false even with transform', () => {
+    const input = '.rule { font-size: 1rem; }'
+    const processed = postcss(
+      unitsToPx({
+        unitMap: {
+          rem: false,
+        },
+        transform: value => value * 20,
+      }),
+    ).process(input).css
+
+    expect(processed).toBe(input)
+  })
+
+  it('skips all conversions when transform is false', () => {
+    const input = '.rule { font-size: 1rem; margin: 1vw; }'
+    const processed = postcss(
+      unitsToPx({
+        transform: false,
+      }),
+    ).process(input).css
+
+    expect(processed).toBe(input)
+  })
+
   it('respects propList and replace=false behavior', () => {
     const input = '.rule { font-size: 1rem; margin: 1rem; }'
     const output = '.rule { font-size: 1rem; font-size: 16px; margin: 1rem; }'

@@ -1,5 +1,6 @@
 import type {
   PostcssUnitsToPx,
+  TransformContext,
   UnitMap,
   UnitTransform,
   UserDefinedOptions,
@@ -13,7 +14,7 @@ import {
   walkAndReplaceValues,
 } from './shared'
 
-type UnitRule = number | UnitTransform | null
+type UnitRule = number | UnitTransform | null | false
 
 function normalizeUnitMap(unitMap: UnitMap) {
   const normalized = new Map<string, UnitRule>()
@@ -36,7 +37,7 @@ function createReplace(
   unitPrecision: number,
   minValue: number,
   transform: UserDefinedOptions['transform'],
-  context: Parameters<NonNullable<UserDefinedOptions['transform']>>[2],
+  context: TransformContext,
 ) {
   const shouldRound = unitPrecision >= 0 && unitPrecision <= 100
 
@@ -57,6 +58,10 @@ function createReplace(
     const unit = m.slice($1.length).toLowerCase()
     const rule = unitMap.get(unit)
     let pxValue: number | undefined
+
+    if (rule === false) {
+      return m
+    }
 
     if (typeof rule === 'function') {
       pxValue = rule(value, context)
@@ -125,7 +130,7 @@ const plugin: PostcssUnitsToPx = (options: UserDefinedOptions = {}) => {
     ...(options.unitMap ?? {}),
   }
 
-  if (disabled) {
+  if (disabled || transform === false) {
     return { postcssPlugin }
   }
 

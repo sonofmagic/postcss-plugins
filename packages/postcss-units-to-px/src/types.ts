@@ -54,10 +54,11 @@ export type GlobalTransform = (
  * const unitMap = {
  *   rem: 16,
  *   px: null,
+ *   vw: false,
  *   vh: (value) => value * 6.67,
  * }
  */
-export type UnitMap = Record<string, number | UnitTransform | null>
+export type UnitMap = Record<string, number | UnitTransform | null | false>
 
 export interface UserDefinedOptions {
   /**
@@ -75,16 +76,17 @@ export interface UserDefinedOptions {
    * }
    *
    * @example
-   * unitMap: { rem: 10, vw: 3.2, px: null }
+   * unitMap: { rem: 10, vw: 3.2, px: null, vmin: false }
    */
   unitMap?: UnitMap
   /**
    * Global conversion callback when a unit has no rule or is set to null.
+   * Set to false to skip all conversions.
    *
    * @example
    * transform: (value, unit) => (unit === 'em' ? value * 12 : value * 16)
    */
-  transform?: GlobalTransform
+  transform?: GlobalTransform | false
   /**
    * Decimal precision for generated px values.
    *

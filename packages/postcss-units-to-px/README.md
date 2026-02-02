@@ -47,17 +47,17 @@ const defaultOptions = {
 
 ### unitMap
 
-Type: `Record<string, number | (value, context) => number | null>`
+Type: `Record<string, number | (value, context) => number | null | false>`
 
-Per-unit conversion rules. A numeric value is treated as a multiplier (e.g. `1rem * 16 = 16px`). A function should return the final px value. If the rule is `null`, the plugin will fall back to the global `transform` (if provided).
+Per-unit conversion rules. A numeric value is treated as a multiplier (e.g. `1rem * 16 = 16px`). A function should return the final px value. If the rule is `null`, the plugin will fall back to the global `transform` (if provided). If the rule is `false`, the value is left unchanged even when `transform` is provided.
 
 Note: `unitMap` merges with defaults. To override a unit, set that key explicitly.
 
 ### transform
 
-Type: `(value, unit, context) => number`
+Type: `((value, unit, context) => number) | false`
 
-Global conversion function used when a unit does not have a per-unit rule (or when that rule is `null`).
+Global conversion function used when a unit does not have a per-unit rule (or when that rule is `null`). Set to `false` to disable all conversions.
 
 Signature:
 
