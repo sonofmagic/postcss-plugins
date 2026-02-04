@@ -1,5 +1,12 @@
 # postcss-plugin-shared
 
+## 1.1.1
+
+### Patch Changes
+
+- 🐛 **Remove the postcss-plugin keyword from the shared utilities package metadata.** [`d756dd5`](https://github.com/sonofmagic/postcss-plugins/commit/d756dd504a87136d706bd43cbff7a5f21b5a86bc) by @sonofmagic
+  - [#38](https://github.com/sonofmagic/postcss-plugins/issues/38)
+
 ## 1.1.0
 
 ### Minor Changes
