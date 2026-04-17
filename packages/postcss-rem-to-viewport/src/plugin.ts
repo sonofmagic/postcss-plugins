@@ -1,11 +1,6 @@
 import type { PostcssRemToViewport, UserDefinedOptions } from './types'
-import { remRegex } from './regex'
-import {
-  createRemReplace,
-  getConfig,
-  postcssPlugin,
-  walkAndReplaceValues,
-} from './shared'
+import unitConverter, { presets } from '../../postcss-rule-unit-converter/src/index'
+import { getConfig, postcssPlugin } from './shared'
 
 /**
  * Convert rem to viewport units (vw by default).
@@ -51,32 +46,28 @@ const plugin: PostcssRemToViewport = (
     }
   }
 
+  const wrappedPlugin = unitConverter({
+    disabled,
+    exclude,
+    mediaQuery,
+    minValue: minRemValue,
+    propList,
+    replace,
+    rules: [
+      presets.remToViewport({
+        rootValue: 16,
+        to: transformUnit,
+        viewportWidth: rootValue,
+      }),
+    ],
+    selectorBlackList,
+    unitPrecision,
+  }) as { Once?: (css: unknown) => void }
+
   return {
     postcssPlugin,
     Once(css) {
-      const source = css.source
-      const input = source!.input
-      const _rootValue
-        = typeof rootValue === 'function' ? rootValue(input) : rootValue
-      const pxReplace = createRemReplace(
-        _rootValue,
-        unitPrecision,
-        minRemValue,
-        transformUnit,
-      )
-
-      walkAndReplaceValues({
-        root: css,
-        unitRegex: remRegex,
-        propList,
-        selectorBlackList,
-        exclude,
-        replace,
-        mediaQuery,
-        createReplacer: () => pxReplace,
-        shouldProcessDecl: decl => decl.value.includes('rem'),
-        shouldProcessAtRule: atRule => atRule.name === 'media' && atRule.params.includes('rem'),
-      })
+      wrappedPlugin.Once?.(css)
     },
   }
 }

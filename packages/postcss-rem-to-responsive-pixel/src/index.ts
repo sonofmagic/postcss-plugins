@@ -1,12 +1,7 @@
-import type { Input, Root } from 'postcss'
+import type { Root } from 'postcss'
 import type { PostcssRemToResponsivePixel, UserDefinedOptions } from './types'
-import { remRegex } from './regex'
-import {
-  createRemReplace,
-  getConfig,
-  postcssPlugin,
-  walkAndReplaceValues,
-} from './shared'
+import unitConverter, { presets } from '../../postcss-rule-unit-converter/src/index'
+import { getConfig, postcssPlugin } from './shared'
 
 export * from './types'
 /**
@@ -54,39 +49,30 @@ const plugin: PostcssRemToResponsivePixel = (
       postcssPlugin,
     }
   }
-  const isRootValueFn = typeof rootValue === 'function'
-  const staticReplace = isRootValueFn
-    ? undefined
-    : createRemReplace(rootValue, unitPrecision, minRemValue, transformUnit)
+  const wrappedPlugin = unitConverter({
+    disabled,
+    exclude,
+    mediaQuery,
+    minValue: minRemValue,
+    propList,
+    replace,
+    rules: [
+      transformUnit === 'rpx'
+        ? presets.remToRpx({
+            rootValue,
+          })
+        : presets.remToPx({
+            rootValue,
+          }),
+    ],
+    selectorBlackList,
+    unitPrecision,
+  }) as { Once?: (css: Root) => void }
 
   return {
     postcssPlugin,
     [processorStage]: (css: Root) => {
-      const source = css.source
-      const input = source?.input
-      if (!input) {
-        return
-      }
-      const pxReplace = isRootValueFn
-        ? createRemReplace(
-            (rootValue as (input: Input) => number)(input!),
-            unitPrecision,
-            minRemValue,
-            transformUnit,
-          )
-        : staticReplace!
-      walkAndReplaceValues({
-        root: css,
-        unitRegex: remRegex,
-        propList,
-        selectorBlackList,
-        exclude,
-        replace,
-        mediaQuery,
-        createReplacer: () => pxReplace,
-        shouldProcessDecl: decl => decl.value.includes('rem'),
-        shouldProcessAtRule: atRule => atRule.name === 'media' && atRule.params.includes('rem'),
-      })
+      wrappedPlugin.Once?.(css)
     },
   }
 }
