@@ -1,5 +1,15 @@
 # postcss-units-to-px
 
+## 0.2.1
+
+### Patch Changes
+
+- 🐛 **Refactor unit conversion internals to reuse the shared rule unit converter while preserving matcher and transform behavior.** [`3aa4776`](https://github.com/sonofmagic/postcss-plugins/commit/3aa4776f343e034461c149099068dc74c7e40511) by @sonofmagic
+
+- 🐛 **Migrate package TypeScript config for TypeScript 6 compatibility and remove legacy type resolution config.** [`beca84b`](https://github.com/sonofmagic/postcss-plugins/commit/beca84b55e2bacffb2b6f1ee675354a7bf0791a5) by @sonofmagic
+- 📦 **Dependencies** [`beca84b`](https://github.com/sonofmagic/postcss-plugins/commit/beca84b55e2bacffb2b6f1ee675354a7bf0791a5)
+  → `postcss-plugin-shared@1.1.2`
+
 ## 0.2.0
 
 ### Minor Changes

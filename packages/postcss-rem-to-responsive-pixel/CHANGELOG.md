@@ -1,5 +1,15 @@
 # postcss-rem-to-responsive-pixel
 
+## 7.0.2
+
+### Patch Changes
+
+- 🐛 **Refactor rem conversion internals to reuse the shared rule unit converter while preserving existing package behavior.** [`cabdb17`](https://github.com/sonofmagic/postcss-plugins/commit/cabdb17a47bad5fc96161ecc2f245264cfa414ce) by @sonofmagic
+
+- 🐛 **Migrate package TypeScript config for TypeScript 6 compatibility and remove legacy type resolution config.** [`beca84b`](https://github.com/sonofmagic/postcss-plugins/commit/beca84b55e2bacffb2b6f1ee675354a7bf0791a5) by @sonofmagic
+- 📦 **Dependencies** [`beca84b`](https://github.com/sonofmagic/postcss-plugins/commit/beca84b55e2bacffb2b6f1ee675354a7bf0791a5)
+  → `postcss-plugin-shared@1.1.2`
+
 ## 7.0.1
 
 ### Patch Changes
