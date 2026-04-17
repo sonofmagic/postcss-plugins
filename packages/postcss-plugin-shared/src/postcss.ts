@@ -23,6 +23,25 @@ export function declarationExists(
   prop: string,
   value: string,
 ) {
+  const nodes = decls as unknown as { length?: number, [index: number]: ChildNode }
+  const length = nodes.length
+
+  if (typeof length === 'number') {
+    for (let index = 0; index < length; index += 1) {
+      const node = nodes[index]
+      if (node?.type !== 'decl') {
+        continue
+      }
+
+      const decl = node as Declaration
+      if (decl.prop === prop && decl.value === value) {
+        return true
+      }
+    }
+
+    return false
+  }
+
   return decls.some((node) => {
     if (node.type !== 'decl') {
       return false
@@ -121,7 +140,10 @@ export function walkAndReplaceValues(options: WalkAndReplaceOptions) {
 
   const satisfyPropList = createPropListMatcher(propList)
   const unitTestRegex = new RegExp(unitRegex.source, unitRegex.flags.replace('g', ''))
-  const isBlacklisted = createSelectorBlacklistMatcher(selectorBlackList, { cache: true })
+  const hasSelectorBlackList = selectorBlackList.length > 0
+  const isBlacklisted = hasSelectorBlackList
+    ? createSelectorBlacklistMatcher(selectorBlackList, { cache: true })
+    : undefined
   const baseContext: ReplaceContext = {
     root,
     input,
@@ -139,7 +161,7 @@ export function walkAndReplaceValues(options: WalkAndReplaceOptions) {
       return
     }
     const rule = decl.parent as Rule
-    if (selectorBlackList.length > 0 && isBlacklisted(rule)) {
+    if (hasSelectorBlackList && isBlacklisted?.(rule)) {
       return
     }
 
