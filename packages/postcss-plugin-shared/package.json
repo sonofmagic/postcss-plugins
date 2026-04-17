@@ -42,7 +42,7 @@
     "postcss": "^8"
   },
   "dependencies": {
-    "defu": "^6.1.4"
+    "defu": "^6.1.7"
   },
   "publishConfig": {
     "exports": {
