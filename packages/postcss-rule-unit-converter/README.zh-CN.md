@@ -5,6 +5,7 @@
 - 场景示例文档：[COOKBOOK.zh-CN.md](./COOKBOOK.zh-CN.md)
 - API 文档：[API.zh-CN.md](./API.zh-CN.md)
 - 迁移文档：[MIGRATION.zh-CN.md](./MIGRATION.zh-CN.md)
+- Preset 编写指南：[PRESET_AUTHORING.zh-CN.md](./PRESET_AUTHORING.zh-CN.md)
 
 ## 特性
 

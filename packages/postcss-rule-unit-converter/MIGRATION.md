@@ -5,6 +5,7 @@ Move legacy packages to `postcss-rule-unit-converter` without changing behavior.
 - Overview: [README.md](./README.md)
 - API: [API.md](./API.md)
 - Recipes: [COOKBOOK.md](./COOKBOOK.md)
+- Preset authoring: [PRESET_AUTHORING.md](./PRESET_AUTHORING.md)
 
 ## When To Migrate
 

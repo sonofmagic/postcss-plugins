@@ -4,6 +4,7 @@ Reference for `postcss-rule-unit-converter`.
 
 - Overview examples: [README.md](./README.md)
 - Scenario recipes: [COOKBOOK.md](./COOKBOOK.md)
+- Preset authoring: [PRESET_AUTHORING.md](./PRESET_AUTHORING.md)
 
 ## Plugin
 

@@ -4,6 +4,7 @@
 
 - 总览与快速上手：[README.zh-CN.md](./README.zh-CN.md)
 - 场景化示例：[COOKBOOK.zh-CN.md](./COOKBOOK.zh-CN.md)
+- Preset 编写指南：[PRESET_AUTHORING.zh-CN.md](./PRESET_AUTHORING.zh-CN.md)
 
 ## 插件入口
 

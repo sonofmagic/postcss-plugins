@@ -5,6 +5,7 @@ Rule-driven PostCSS unit conversion plugin.
 - Cookbook: [COOKBOOK.md](./COOKBOOK.md)
 - API Reference: [API.md](./API.md)
 - Migration Guide: [MIGRATION.md](./MIGRATION.md)
+- Preset Authoring: [PRESET_AUTHORING.md](./PRESET_AUTHORING.md)
 
 ## Features
 

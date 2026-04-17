@@ -5,6 +5,7 @@
 - 总览与快速上手：[README.zh-CN.md](./README.zh-CN.md)
 - API 文档：[API.zh-CN.md](./API.zh-CN.md)
 - 场景示例：[COOKBOOK.zh-CN.md](./COOKBOOK.zh-CN.md)
+- Preset 编写指南：[PRESET_AUTHORING.zh-CN.md](./PRESET_AUTHORING.zh-CN.md)
 
 ## 什么时候该迁移
 
