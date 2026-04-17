@@ -16,7 +16,7 @@ vi.mock('../src/defaults', async (importOriginal) => {
 
 describe('postcss-units-to-px empty unit map', () => {
   it('returns a noop plugin when no units are configured', () => {
-    const plugin = unitsToPx()
+    const plugin = unitsToPx() as { postcssPlugin: string }
 
     expect(plugin.postcssPlugin).toBe('postcss-units-to-px')
     expect('Once' in plugin).toBe(false)
