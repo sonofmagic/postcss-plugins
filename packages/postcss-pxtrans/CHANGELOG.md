@@ -1,5 +1,13 @@
 # postcss-pxtrans
 
+## 1.0.2
+
+### Patch Changes
+
+- 🐛 **Migrate package TypeScript config for TypeScript 6 compatibility and remove legacy type resolution config.** [`beca84b`](https://github.com/sonofmagic/postcss-plugins/commit/beca84b55e2bacffb2b6f1ee675354a7bf0791a5) by @sonofmagic
+- 📦 **Dependencies** [`beca84b`](https://github.com/sonofmagic/postcss-plugins/commit/beca84b55e2bacffb2b6f1ee675354a7bf0791a5)
+  → `postcss-plugin-shared@1.1.2`
+
 ## 1.0.1
 
 ### Patch Changes
