@@ -1,6 +1,6 @@
 import postcss from 'postcss'
 
-import unitConverter, { composeRules, presets } from '@/index'
+import unitConverter, { composeRules, presets } from '../src/index'
 
 describe('postcss-rule-unit-converter', () => {
   it('converts with custom rules', () => {

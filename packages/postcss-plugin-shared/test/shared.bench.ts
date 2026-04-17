@@ -9,7 +9,7 @@ import {
   pxRegex,
   remRegex,
   toFixed,
-} from '@/index'
+} from '../src/index'
 
 const root = postcss.parse('.rule { font-size: 1rem; margin: 12px; padding: 8px; }')
 const firstNode = root.nodes?.[0]

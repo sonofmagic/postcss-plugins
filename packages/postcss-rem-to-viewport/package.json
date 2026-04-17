@@ -27,14 +27,6 @@
   "exports": {
     ".": "./src/index.ts"
   },
-  "typesVersions": {
-    "<4.7": {
-      "*": [
-        "./dist/*",
-        "./dist/index.d.ts"
-      ]
-    }
-  },
   "files": [
     "dist"
   ],

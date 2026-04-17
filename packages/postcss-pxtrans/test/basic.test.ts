@@ -1,7 +1,7 @@
-import type { PxTransformOptions } from '@/types'
+import type { PxTransformOptions } from '../src/types'
 import postcss from 'postcss'
 import { createAdvancedPropListMatcher } from 'postcss-plugin-shared'
-import pxTransform from '@/index'
+import pxTransform from '../src/index'
 import { basicCSS, transform } from './utils'
 
 describe('pxTransform basics', () => {

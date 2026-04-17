@@ -14,7 +14,7 @@ import {
   remRegex,
   toFixed,
   walkAndReplaceValues,
-} from '@/index'
+} from '../src/index'
 
 describe('postcss-plugin-shared', () => {
   describe('toFixed', () => {

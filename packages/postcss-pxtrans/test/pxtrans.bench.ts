@@ -1,7 +1,7 @@
 import postcss from 'postcss'
 import { bench, describe } from 'vitest'
 
-import pxtrans, { createDirectivePlugin } from '@/index'
+import pxtrans, { createDirectivePlugin } from '../src/index'
 
 function makeRules(count: number) {
   const rules: string[] = []

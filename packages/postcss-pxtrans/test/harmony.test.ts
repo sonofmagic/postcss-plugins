@@ -1,6 +1,6 @@
 import type { Declaration, Rule } from 'postcss'
 import postcss from 'postcss'
-import pxTransform from '@/index'
+import pxTransform from '../src/index'
 import { transform } from './utils'
 
 describe('harmony branch coverage', () => {

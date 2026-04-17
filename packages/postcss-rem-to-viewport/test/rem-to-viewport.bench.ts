@@ -1,7 +1,7 @@
 import postcss from 'postcss'
 import { bench, describe } from 'vitest'
 
-import remToVw from '@/index'
+import remToVw from '../src/index'
 
 const processor = postcss(remToVw())
 

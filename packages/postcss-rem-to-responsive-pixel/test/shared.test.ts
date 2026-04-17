@@ -1,5 +1,5 @@
 import postcss from 'postcss'
-import { remRegex } from '@/regex'
+import { remRegex } from '../src/regex'
 import {
   blacklistedSelector,
   createExcludeMatcher,
@@ -8,7 +8,7 @@ import {
   declarationExists,
   getConfig,
   toFixed,
-} from '@/shared'
+} from '../src/shared'
 
 describe('shared helpers', () => {
   it('getConfig replaces array options instead of merging', () => {

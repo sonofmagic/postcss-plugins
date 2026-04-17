@@ -47,14 +47,6 @@
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.mts",
-  "typesVersions": {
-    "<4.7": {
-      "*": [
-        "./dist/*",
-        "./dist/index.d.cts"
-      ]
-    }
-  },
   "files": [
     "dist"
   ],

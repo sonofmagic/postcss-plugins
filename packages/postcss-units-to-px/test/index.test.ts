@@ -1,6 +1,6 @@
 import postcss from 'postcss'
 
-import unitsToPx from '@/index'
+import unitsToPx from '../src/index'
 
 describe('postcss-units-to-px', () => {
   it('converts default units to px', () => {

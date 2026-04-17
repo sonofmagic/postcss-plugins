@@ -3,6 +3,8 @@
     // 指定 ECMAScript 目标版本，ESNext 表示支持最新的 ES 特性
     "target": "ESNext",
 
+    // 强制按模块文件处理，避免脚本/模块混合推断带来的歧义
+    "moduleDetection": "force",
     // 指定模块系统，ESNext 使用原生 ES 模块 (import/export)
     "module": "ESNext",
 
@@ -45,7 +47,14 @@
     // 启用 ES 模块互操作性，为 CommonJS 模块提供 synthetic default imports
     "esModuleInterop": true,
 
+    // 让每个文件都能独立被安全编译，和当前打包工具链更一致
+    "isolatedModules": true,
+    // 保留源码中的 import/export 语义，不做旧式的语法重写
+    "verbatimModuleSyntax": true,
     // 跳过库文件的类型检查，提高编译速度（库文件通常已经有类型声明）
-    "skipLibCheck": true
+    "skipLibCheck": true,
+
+    // TS 6 下部分构建工具的 dts 流程仍会间接触发已废弃选项，这里先做兼容兜底
+    "ignoreDeprecations": "6.0"
   }
 }

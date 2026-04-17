@@ -1,6 +1,6 @@
 import postcss from 'postcss'
 import pxToRem from 'postcss-pxtorem'
-import remToPx from '@/index'
+import remToPx from '../src/index'
 
 const basicCSS = '.rule { font-size: 0.9375rem }'
 

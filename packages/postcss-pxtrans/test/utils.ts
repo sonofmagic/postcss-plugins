@@ -1,6 +1,6 @@
 import postcss from 'postcss'
-import { createDirectivePlugin } from '@/directives'
-import pxTransform from '@/index'
+import { createDirectivePlugin } from '../src/directives'
+import pxTransform from '../src/index'
 
 export function transform(
   css: string,

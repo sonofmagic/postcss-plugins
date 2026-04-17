@@ -1,4 +1,4 @@
-import { getConfig } from '@/shared'
+import { getConfig } from '../src/shared'
 
 describe('config', () => {
   it('getConfig default', () => {

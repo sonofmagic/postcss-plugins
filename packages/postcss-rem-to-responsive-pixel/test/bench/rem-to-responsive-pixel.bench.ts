@@ -1,6 +1,6 @@
 import postcss from 'postcss'
 import { bench, describe } from 'vitest'
-import remToPx from '@/index'
+import remToPx from '../../src/index'
 
 const sampleCss = `
 .page { font-size: 1rem; margin: 0.5rem 1rem; line-height: 1.2; letter-spacing: 0.0625rem; }

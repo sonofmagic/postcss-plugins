@@ -1,6 +1,6 @@
 import postcss from 'postcss'
 
-import remToVw from '@/index'
+import remToVw from '../src/index'
 
 const basicCSS = '.rule { font-size: 0.9375rem }'
 

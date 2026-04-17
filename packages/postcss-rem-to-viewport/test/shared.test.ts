@@ -1,8 +1,8 @@
 import type { Rule } from 'postcss'
 import postcss from 'postcss'
 
-import { defaultOptions } from '@/defaults'
-import { pxRegex, remRegex } from '@/regex'
+import { defaultOptions } from '../src/defaults'
+import { pxRegex, remRegex } from '../src/regex'
 import {
   blacklistedSelector,
   createExcludeMatcher,
@@ -11,7 +11,7 @@ import {
   declarationExists,
   getConfig,
   toFixed,
-} from '@/shared'
+} from '../src/shared'
 
 describe('getConfig', () => {
   it('returns defaults for empty input', () => {
