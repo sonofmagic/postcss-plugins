@@ -6,6 +6,7 @@ export default defineConfig({
     presets: './src/presets.ts',
   },
   format: ['esm', 'cjs'],
+  cjsDefault: false,
   dts: true,
   clean: true,
   target: 'node18',
