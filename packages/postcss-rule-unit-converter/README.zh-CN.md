@@ -3,6 +3,7 @@
 基于规则的通用 PostCSS 单位转换插件。
 
 - 场景示例文档：[COOKBOOK.zh-CN.md](./COOKBOOK.zh-CN.md)
+- API 文档：[API.zh-CN.md](./API.zh-CN.md)
 
 ## 特性
 
