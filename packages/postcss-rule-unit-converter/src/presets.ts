@@ -67,6 +67,20 @@ function maybeMinValue(minValue: number | undefined) {
   return minValue === undefined ? {} : { minValue }
 }
 
+function createStaticFactorRule(
+  from: string,
+  to: string,
+  minValue: number | undefined,
+  factor: number,
+): ConversionRule {
+  return {
+    from,
+    to,
+    factor,
+    ...maybeMinValue(minValue),
+  }
+}
+
 /**
  * Helper for authoring a typed single-rule preset.
  */
@@ -87,6 +101,9 @@ export function definePresetGroup<TOptions extends Record<string, unknown> | und
 
 export function remToPx(options: RemBasedPresetOptions = {}): ConversionRule {
   const { minValue, rootValue = 16, to = 'px' } = options
+  if (typeof rootValue === 'number') {
+    return createStaticFactorRule('rem', to, minValue, rootValue)
+  }
   return {
     from: 'rem',
     to,
@@ -108,6 +125,9 @@ export function remToResponsivePixel(options: RemBasedPresetOptions = {}): Conve
 
 export function remToViewport(options: RemToViewportPresetOptions = {}): ConversionRule {
   const { minValue, rootValue = 16, viewportWidth = 375, to = 'vw' } = options
+  if (typeof rootValue === 'number' && typeof viewportWidth === 'number') {
+    return createStaticFactorRule('rem', to, minValue, rootValue * 100 / viewportWidth)
+  }
   return {
     from: 'rem',
     to,
@@ -129,6 +149,9 @@ export function remToVw(options: RemToViewportPresetOptions = {}): ConversionRul
 
 export function remToVh(options: RemToViewportHeightPresetOptions = {}): ConversionRule {
   const { minValue, rootValue = 16, viewportHeight = 667, to = 'vh' } = options
+  if (typeof rootValue === 'number' && typeof viewportHeight === 'number') {
+    return createStaticFactorRule('rem', to, minValue, rootValue * 100 / viewportHeight)
+  }
   return {
     from: 'rem',
     to,
@@ -143,6 +166,9 @@ export function remToVh(options: RemToViewportHeightPresetOptions = {}): Convers
 
 export function pxToRem(options: RemBasedPresetOptions = {}): ConversionRule {
   const { minValue, rootValue = 16, to = 'rem' } = options
+  if (typeof rootValue === 'number') {
+    return createStaticFactorRule('px', to, minValue, 1 / rootValue)
+  }
   return {
     from: 'px',
     to,
@@ -153,6 +179,9 @@ export function pxToRem(options: RemBasedPresetOptions = {}): ConversionRule {
 
 export function pxToViewport(options: ViewportPresetOptions = {}): ConversionRule {
   const { minValue, viewportWidth = 375, to = 'vw' } = options
+  if (typeof viewportWidth === 'number') {
+    return createStaticFactorRule('px', to, minValue, 100 / viewportWidth)
+  }
   return {
     from: 'px',
     to,
@@ -170,6 +199,9 @@ export function pxToVw(options: ViewportPresetOptions = {}): ConversionRule {
 
 export function pxToVh(options: ViewportHeightPresetOptions = {}): ConversionRule {
   const { minValue, viewportHeight = 667, to = 'vh' } = options
+  if (typeof viewportHeight === 'number') {
+    return createStaticFactorRule('px', to, minValue, 100 / viewportHeight)
+  }
   return {
     from: 'px',
     to,
@@ -200,6 +232,9 @@ export function pxToRpx(options: LinearPresetOptions & RatioOptions = {}): Conve
 
 export function rpxToRem(options: RemBasedPresetOptions & RatioOptions = {}): ConversionRule {
   const { minValue, rootValue = 16, ratio = 0.5, to = 'rem' } = options
+  if (typeof rootValue === 'number') {
+    return createStaticFactorRule('rpx', to, minValue, ratio / rootValue)
+  }
   return {
     from: 'rpx',
     to,
@@ -210,6 +245,9 @@ export function rpxToRem(options: RemBasedPresetOptions & RatioOptions = {}): Co
 
 export function remToRpxRatio(options: RemBasedPresetOptions & RatioOptions = {}): ConversionRule {
   const { minValue, rootValue = 16, ratio = 2, to = 'rpx' } = options
+  if (typeof rootValue === 'number') {
+    return createStaticFactorRule('rem', to, minValue, rootValue * ratio)
+  }
   return {
     from: 'rem',
     to,
@@ -224,6 +262,9 @@ export function remToRpxByRatio(options: RemBasedPresetOptions & RatioOptions = 
 
 export function rpxToVw(options: ViewportPresetOptions & RatioOptions = {}): ConversionRule {
   const { minValue, viewportWidth = 375, ratio = 0.5, to = 'vw' } = options
+  if (typeof viewportWidth === 'number') {
+    return createStaticFactorRule('rpx', to, minValue, ratio * 100 / viewportWidth)
+  }
   return {
     from: 'rpx',
     to,
@@ -234,6 +275,9 @@ export function rpxToVw(options: ViewportPresetOptions & RatioOptions = {}): Con
 
 export function rpxToVh(options: ViewportHeightPresetOptions & RatioOptions = {}): ConversionRule {
   const { minValue, viewportHeight = 667, ratio = 0.5, to = 'vh' } = options
+  if (typeof viewportHeight === 'number') {
+    return createStaticFactorRule('rpx', to, minValue, ratio * 100 / viewportHeight)
+  }
   return {
     from: 'rpx',
     to,
@@ -244,6 +288,9 @@ export function rpxToVh(options: ViewportHeightPresetOptions & RatioOptions = {}
 
 export function vwToPx(options: ViewportPresetOptions = {}): ConversionRule {
   const { minValue, viewportWidth = 375, to = 'px' } = options
+  if (typeof viewportWidth === 'number') {
+    return createStaticFactorRule('vw', to, minValue, viewportWidth / 100)
+  }
   return {
     from: 'vw',
     to,
@@ -254,6 +301,9 @@ export function vwToPx(options: ViewportPresetOptions = {}): ConversionRule {
 
 export function vhToPx(options: ViewportHeightPresetOptions = {}): ConversionRule {
   const { minValue, viewportHeight = 667, to = 'px' } = options
+  if (typeof viewportHeight === 'number') {
+    return createStaticFactorRule('vh', to, minValue, viewportHeight / 100)
+  }
   return {
     from: 'vh',
     to,
@@ -292,6 +342,9 @@ export function vhToRem(options: RemToViewportHeightPresetOptions = {}): Convers
 
 export function vwToRpx(options: ViewportPresetOptions & RatioOptions = {}): ConversionRule {
   const { minValue, viewportWidth = 375, ratio = 2, to = 'rpx' } = options
+  if (typeof viewportWidth === 'number') {
+    return createStaticFactorRule('vw', to, minValue, viewportWidth / 100 * ratio)
+  }
   return {
     from: 'vw',
     to,
@@ -302,6 +355,9 @@ export function vwToRpx(options: ViewportPresetOptions & RatioOptions = {}): Con
 
 export function vhToRpx(options: ViewportHeightPresetOptions & RatioOptions = {}): ConversionRule {
   const { minValue, viewportHeight = 667, ratio = 2, to = 'rpx' } = options
+  if (typeof viewportHeight === 'number') {
+    return createStaticFactorRule('vh', to, minValue, viewportHeight / 100 * ratio)
+  }
   return {
     from: 'vh',
     to,

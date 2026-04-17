@@ -78,16 +78,20 @@ function createUnitTransformRule(
   rule: UnitRule | null,
   transform: UserDefinedOptions['transform'],
 ): ConversionRule {
+  if (typeof rule === 'number') {
+    return {
+      from: matcher,
+      to: 'px',
+      factor: rule,
+    }
+  }
+
   return {
     from: matcher,
     to: 'px',
     transform(value: number, context: RuleContext) {
       if (rule === false) {
         return undefined
-      }
-
-      if (typeof rule === 'number') {
-        return value * rule
       }
 
       if (typeof rule === 'function') {
