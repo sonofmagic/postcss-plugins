@@ -1,5 +1,6 @@
 import postcss from 'postcss'
 import pxToRem from 'postcss-pxtorem'
+import unitConverter, { presets } from '../../postcss-rule-unit-converter/src/index'
 import remToPx from '../src/index'
 
 const basicCSS = '.rule { font-size: 0.9375rem }'
@@ -80,6 +81,29 @@ describe('remToPx', () => {
     ).process(input).css
 
     expect(processed).toBe(output)
+  })
+
+  it('matches the equivalent rule-unit-converter preset output', () => {
+    const input = '.rule { font-size: 1rem; letter-spacing: 0.125rem; margin: 1rem; }'
+    const options = {
+      propList: ['font', 'font-size', 'letter-spacing'],
+      rootValue: 16,
+      transformUnit: 'rpx' as const,
+      unitPrecision: 5,
+    }
+
+    const legacy = postcss(remToPx(options)).process(input).css
+    const unified = postcss(unitConverter({
+      propList: options.propList,
+      unitPrecision: options.unitPrecision,
+      rules: [
+        options.transformUnit === 'rpx'
+          ? presets.remToRpx({ rootValue: options.rootValue })
+          : presets.remToPx({ rootValue: options.rootValue }),
+      ],
+    })).process(input).css
+
+    expect(legacy).toBe(unified)
   })
 })
 

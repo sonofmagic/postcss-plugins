@@ -2,6 +2,8 @@
 
 PostCSS unit conversion plugin (px → rpx/rem/vw/px) for multi-platform responsive styling. It is compatible with the legacy `postcss-pxtransform` option style, and supports directive comments (`#ifdef/#ifndef`) and RN eject.
 
+If you need multi-rule composition, custom preset authoring, or to mix `px/rem/rpx/vw/vh` conversions in one plugin, prefer `postcss-rule-unit-converter`. Keep `postcss-pxtrans` when you specifically need its platform presets and directive comment workflow.
+
 English | [简体中文](./README.zh-CN.md)
 
 ## Install

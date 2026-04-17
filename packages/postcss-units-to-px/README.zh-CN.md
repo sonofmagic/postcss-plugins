@@ -2,6 +2,8 @@
 
 将多种 CSS 单位转换为 `px` 的 PostCSS 插件。默认支持 `rem`、`em`、`vw`、`vh`、`vmin`、`vmax`、`rpx`，并可按需覆盖或扩展规则。
 
+如果你想把 `units -> px` 和其他目标单位转换、可复用 preset group 组合到一个插件里，更建议直接使用 `postcss-rule-unit-converter`。如果你只是想保持现有 `units -> px` API 不变，则继续使用这个包。
+
 ## 安装
 
 ```bash

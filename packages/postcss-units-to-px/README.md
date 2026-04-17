@@ -2,6 +2,8 @@
 
 Convert multiple CSS units to `px` with PostCSS. The default unit map covers `rem`, `em`, `vw`, `vh`, `vmin`, `vmax`, and `rpx`, and you can override or extend the rules as needed.
 
+If you need to combine `units -> px` with other target units or reusable preset groups, prefer `postcss-rule-unit-converter`. Keep this package when you want the legacy `units -> px` API surface unchanged.
+
 ## Install
 
 ```bash

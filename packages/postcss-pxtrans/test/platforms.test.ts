@@ -1,3 +1,6 @@
+import postcss from 'postcss'
+import unitConverter from '../../postcss-rule-unit-converter/src/index'
+import { pxRegex } from '../src/pixel-unit-regex'
 import { transform } from './utils'
 
 describe('platform weapp', () => {
@@ -52,6 +55,27 @@ describe('platform h5', () => {
     const expected = 'h1 {margin: 0 0 0.585rem;font-size: 40Px;line-height: 1.2;}'
     const processed = transform(rules, { platform: 'h5', designWidth: 640 })
     expect(processed).toBe(expected)
+  })
+
+  it('matches the equivalent rule-unit-converter output for h5 rem preset behavior', () => {
+    const input = 'h1 {margin: 0 0 20px;font-size: 20rpx;line-height: 1.2;}'
+    const legacy = transform(input, { platform: 'h5', designWidth: 640 })
+    const unified = postcss(unitConverter({
+      keepZeroUnit: true,
+      propList: ['*'],
+      unitRegex: pxRegex(['px', 'rpx']),
+      rules: [
+        {
+          from: unit => unit === 'px' || unit === 'rpx',
+          to: 'rem',
+          transform(value) {
+            return value / ((20 / (2.34 / 2)) * 2)
+          },
+        },
+      ],
+    })).process(input, { from: 'input.css' }).css
+
+    expect(legacy).toBe(unified)
   })
 })
 

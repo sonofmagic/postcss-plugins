@@ -1,4 +1,5 @@
 import postcss from 'postcss'
+import unitConverter, { composeRules, presets } from '../../postcss-rule-unit-converter/src/index'
 
 import unitsToPx from '../src/index'
 
@@ -9,6 +10,22 @@ describe('postcss-units-to-px', () => {
     const processed = postcss(unitsToPx()).process(input).css
 
     expect(processed).toBe(output)
+  })
+
+  it('matches the equivalent rule-unit-converter preset output', () => {
+    const input = '.rule { margin: 1rem 1em 1vw 1vh 1rpx; }'
+    const options = {
+      propList: ['*'],
+      unitPrecision: 5,
+    }
+    const legacy = postcss(unitsToPx(options)).process(input).css
+    const unified = postcss(unitConverter({
+      propList: options.propList,
+      unitPrecision: options.unitPrecision,
+      rules: composeRules(presets.unitsToPx()),
+    })).process(input).css
+
+    expect(legacy).toBe(unified)
   })
 
   it('respects unitPrecision', () => {

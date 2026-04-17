@@ -4,6 +4,8 @@
 
 一个用于 [PostCSS](https://github.com/ai/postcss) 的插件：把 `rem` 转换为 `px` 或 `rpx`，用于响应式与多端适配。
 
+如果你想把这类规则和其他单位转换、自定义 preset 组合到一个插件里，更建议直接使用 `postcss-rule-unit-converter`。如果你只是想保持现有 `rem -> px/rpx` API 不变，则继续使用这个包。
+
 - 使用 `TypeScript` 重写并覆盖测试
 - `transformUnit` 支持 `px` 和 `rpx`
 - 插件内部复用了 `postcss-plugin-shared` 的通用能力。

@@ -1,4 +1,5 @@
 import postcss from 'postcss'
+import unitConverter, { presets } from '../../postcss-rule-unit-converter/src/index'
 
 import remToVw from '../src/index'
 
@@ -105,6 +106,31 @@ describe('remToVw', () => {
     ).process(input, { from: '/src/skip.css' }).css
 
     expect(processed).toBe(input)
+  })
+
+  it('matches the equivalent rule-unit-converter preset output', () => {
+    const input = 'h1 { font-size: 1rem; letter-spacing: 0.125rem; margin: 1rem; }'
+    const options = {
+      propList: ['font', 'font-size', 'letter-spacing'],
+      rootValue: 375,
+      transformUnit: 'vw' as const,
+      unitPrecision: 5,
+    }
+
+    const legacy = postcss(remToVw(options)).process(input).css
+    const unified = postcss(unitConverter({
+      propList: options.propList,
+      unitPrecision: options.unitPrecision,
+      rules: [
+        presets.remToViewport({
+          rootValue: 16,
+          to: options.transformUnit,
+          viewportWidth: options.rootValue,
+        }),
+      ],
+    })).process(input).css
+
+    expect(legacy).toBe(unified)
   })
 })
 
