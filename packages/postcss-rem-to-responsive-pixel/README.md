@@ -2,7 +2,7 @@
 
 A plugin for [PostCSS](https://github.com/ai/postcss) that generates px or rpx units from rem units.
 
-If you need to combine this behavior with other unit conversions or author custom presets, prefer `postcss-rule-unit-converter`. Keep this package when you want the legacy `rem -> px/rpx` API surface unchanged.
+If you need to combine this behavior with other unit conversions or author custom presets, prefer `postcss-rule-unit-converter`. Keep this package when you want the legacy `rem -> px/rpx` API surface unchanged. For equivalent config examples, see [`postcss-rule-unit-converter` migration guide](../postcss-rule-unit-converter/MIGRATION.md).
 
 English | [简体中文](./README.zh-CN.md)
 

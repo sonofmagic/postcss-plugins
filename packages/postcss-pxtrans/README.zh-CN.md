@@ -4,7 +4,7 @@
 
 PostCSS 单位转换插件（px -> rpx/rem/vw/px），用于多端样式适配。兼容原 `postcss-pxtransform` 配置风格，支持平台指令注释（#ifdef/#ifndef）与 RN eject。
 
-如果你需要在一个插件里组合多套规则、自定义 preset，或者混合处理 `px/rem/rpx/vw/vh`，更建议直接使用 `postcss-rule-unit-converter`。如果你依赖 `pxtrans` 这套平台预设和指令注释工作流，则继续使用 `postcss-pxtrans`。
+如果你需要在一个插件里组合多套规则、自定义 preset，或者混合处理 `px/rem/rpx/vw/vh`，更建议直接使用 `postcss-rule-unit-converter`。如果你依赖 `pxtrans` 这套平台预设和指令注释工作流，则继续使用 `postcss-pxtrans`。如果想看一一对应的迁移写法，可以直接看 [`postcss-rule-unit-converter` 迁移文档](../postcss-rule-unit-converter/MIGRATION.zh-CN.md)。
 
 ## 安装
 

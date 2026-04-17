@@ -4,7 +4,7 @@
 
 一个用于 [PostCSS](https://github.com/ai/postcss) 的插件：把 `rem` 转换为 viewport 单位（默认 `vw`），用于响应式布局。
 
-如果你想把这类规则和其他单位转换、自定义 preset 组合到一个插件里，更建议直接使用 `postcss-rule-unit-converter`。如果你只是想保持现有 `rem -> viewport` API 不变，则继续使用这个包。
+如果你想把这类规则和其他单位转换、自定义 preset 组合到一个插件里，更建议直接使用 `postcss-rule-unit-converter`。如果你只是想保持现有 `rem -> viewport` API 不变，则继续使用这个包。对应的一一迁移写法可以直接看 [`postcss-rule-unit-converter` 迁移文档](../postcss-rule-unit-converter/MIGRATION.zh-CN.md)。
 
 - 使用 `TypeScript` 重写并覆盖测试
 - `transformUnit` 支持 `vw` 等其他单位
