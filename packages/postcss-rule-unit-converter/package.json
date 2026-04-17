@@ -1,0 +1,76 @@
+{
+  "name": "postcss-rule-unit-converter",
+  "type": "module",
+  "version": "0.1.0",
+  "description": "Convert CSS units with composable PostCSS rules and built-in presets.",
+  "author": "ice breaker <1324318532@qq.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sonofmagic/postcss-plugins.git",
+    "directory": "packages/postcss-rule-unit-converter"
+  },
+  "bugs": {
+    "url": "https://github.com/sonofmagic/postcss-plugins/issues"
+  },
+  "keywords": [
+    "postcss",
+    "postcss-plugin",
+    "css",
+    "units",
+    "unit-conversion",
+    "rem",
+    "px",
+    "vw",
+    "rpx",
+    "responsive"
+  ],
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": {
+        "import": "./dist/index.d.mts",
+        "require": "./dist/index.d.cts"
+      },
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    },
+    "./presets": {
+      "types": {
+        "import": "./dist/presets.d.mts",
+        "require": "./dist/presets.d.cts"
+      },
+      "import": "./dist/presets.mjs",
+      "require": "./dist/presets.cjs"
+    }
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "typesVersions": {
+    "<4.7": {
+      "*": [
+        "./dist/*",
+        "./dist/index.d.cts"
+      ]
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "tsdown -w",
+    "build": "tsdown",
+    "test": "vitest run",
+    "test:dev": "vitest",
+    "release": "pnpm publish",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
+  },
+  "peerDependencies": {
+    "postcss": "^8"
+  },
+  "dependencies": {
+    "postcss-plugin-shared": "workspace:^"
+  }
+}
