@@ -44,6 +44,13 @@ export interface ConversionRule {
 }
 
 export type RuleGroup = ConversionRule | readonly ConversionRule[]
+export type PresetOptions = Record<string, unknown> | undefined
+export type PresetFactory<TOptions extends PresetOptions = undefined> = (
+  options?: TOptions,
+) => ConversionRule
+export type PresetGroupFactory<TOptions extends PresetOptions = undefined> = (
+  options?: TOptions,
+) => ConversionRule[]
 
 /**
  * Numeric option that can be resolved dynamically from the current PostCSS input.

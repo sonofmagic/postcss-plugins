@@ -86,6 +86,82 @@ const result = await postcss([
 ]).process('.demo{font-size:32rpx;width:10vw;height:10vh}', { from: undefined })
 ```
 
+## 自定义 Preset
+
+单条 preset，自带导出的类型：
+
+```ts
+import type { PresetFactory, RemBasedPresetOptions } from 'postcss-rule-unit-converter'
+import postcss from 'postcss'
+import unitConverter, {
+  definePreset
+
+} from 'postcss-rule-unit-converter'
+
+const remToDp: PresetFactory<RemBasedPresetOptions> = definePreset((options = {}) => {
+  const { rootValue = 16, minValue, to = 'dp' } = options
+  return {
+    from: 'rem',
+    to,
+    minValue,
+    transform: (value, context) => {
+      const resolvedRootValue = typeof rootValue === 'function'
+        ? rootValue(context.input)
+        : rootValue
+      return value * resolvedRootValue
+    },
+  }
+})
+
+const result = await postcss([
+  unitConverter({
+    rules: [remToDp({ rootValue: 20 })],
+  }),
+]).process('.demo{font-size:1rem}', { from: undefined })
+```
+
+分组 preset，自带导出的类型：
+
+```ts
+import type { PresetGroupFactory, RemBasedPresetOptions } from 'postcss-rule-unit-converter'
+import postcss from 'postcss'
+import unitConverter, {
+  definePresetGroup
+
+} from 'postcss-rule-unit-converter'
+
+type MyPresetOptions = RemBasedPresetOptions & {
+  ratio?: number
+}
+
+const mobilePresetGroup: PresetGroupFactory<MyPresetOptions> = definePresetGroup((options = {}) => {
+  const { rootValue = 16, ratio = 2 } = options
+  return [
+    {
+      from: 'rem',
+      to: 'rpx',
+      transform: (value, context) => {
+        const resolvedRootValue = typeof rootValue === 'function'
+          ? rootValue(context.input)
+          : rootValue
+        return value * resolvedRootValue * ratio
+      },
+    },
+    {
+      from: 'px',
+      to: 'rpx',
+      factor: ratio,
+    },
+  ]
+})
+
+const result = await postcss([
+  unitConverter({
+    rules: mobilePresetGroup({ rootValue: 16, ratio: 2 }),
+  }),
+]).process('.demo{font-size:1rem;margin:16px}', { from: undefined })
+```
+
 自定义 transform 规则：
 
 ```ts
@@ -114,8 +190,16 @@ const result = await postcss([
 - 项目里如果有一个主单位体系，优先使用 preset group。
 - 如果你要严格控制命中顺序，优先直接写显式规则数组。
 - 使用 `presets.viewportPresetGroup()` 时，建议显式指定 `viewportUnit: 'vw'` 或 `viewportUnit: 'vh'`。
+- 在业务里沉淀可复用 preset 时，优先使用 `definePreset(...)` 和 `definePresetGroup(...)`。
 
 ## Presets
+
+自定义 preset 辅助类型：
+
+- `definePreset()`
+- `definePresetGroup()`
+- `type PresetFactory<TOptions>`
+- `type PresetGroupFactory<TOptions>`
 
 - `presets.remToPx()`
 - `presets.remToRpx()`

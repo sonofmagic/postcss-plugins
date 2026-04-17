@@ -1,4 +1,9 @@
-import type { ConversionRule, NumericResolver } from './types'
+import type {
+  ConversionRule,
+  NumericResolver,
+  PresetFactory,
+  PresetGroupFactory,
+} from './types'
 import { resolveNumericValue } from './shared'
 
 export interface LinearPresetOptions {
@@ -56,6 +61,24 @@ export interface PxPresetGroupOptions {
 
 export interface ViewportGroupOptions extends PxPresetGroupOptions {
   viewportUnit?: 'vw' | 'vh'
+}
+
+/**
+ * Helper for authoring a typed single-rule preset.
+ */
+export function definePreset<TOptions extends Record<string, unknown> | undefined = undefined>(
+  factory: PresetFactory<TOptions>,
+) {
+  return factory
+}
+
+/**
+ * Helper for authoring a typed grouped preset.
+ */
+export function definePresetGroup<TOptions extends Record<string, unknown> | undefined = undefined>(
+  factory: PresetGroupFactory<TOptions>,
+) {
+  return factory
 }
 
 export function remToPx(options: RemBasedPresetOptions = {}): ConversionRule {
@@ -396,6 +419,8 @@ export function webPresetGroup(options: PxPresetGroupOptions = {}): ConversionRu
 }
 
 export const presets = {
+  definePreset,
+  definePresetGroup,
   remToPx,
   remToRpx,
   remToRpxByRatio,

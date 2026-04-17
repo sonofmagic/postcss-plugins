@@ -86,6 +86,82 @@ const result = await postcss([
 ]).process('.demo{font-size:32rpx;width:10vw;height:10vh}', { from: undefined })
 ```
 
+## Custom Presets
+
+Single preset with exported types:
+
+```ts
+import type { PresetFactory, RemBasedPresetOptions } from 'postcss-rule-unit-converter'
+import postcss from 'postcss'
+import unitConverter, {
+  definePreset
+
+} from 'postcss-rule-unit-converter'
+
+const remToDp: PresetFactory<RemBasedPresetOptions> = definePreset((options = {}) => {
+  const { rootValue = 16, minValue, to = 'dp' } = options
+  return {
+    from: 'rem',
+    to,
+    minValue,
+    transform: (value, context) => {
+      const resolvedRootValue = typeof rootValue === 'function'
+        ? rootValue(context.input)
+        : rootValue
+      return value * resolvedRootValue
+    },
+  }
+})
+
+const result = await postcss([
+  unitConverter({
+    rules: [remToDp({ rootValue: 20 })],
+  }),
+]).process('.demo{font-size:1rem}', { from: undefined })
+```
+
+Grouped preset with exported types:
+
+```ts
+import type { PresetGroupFactory, RemBasedPresetOptions } from 'postcss-rule-unit-converter'
+import postcss from 'postcss'
+import unitConverter, {
+  definePresetGroup
+
+} from 'postcss-rule-unit-converter'
+
+type MyPresetOptions = RemBasedPresetOptions & {
+  ratio?: number
+}
+
+const mobilePresetGroup: PresetGroupFactory<MyPresetOptions> = definePresetGroup((options = {}) => {
+  const { rootValue = 16, ratio = 2 } = options
+  return [
+    {
+      from: 'rem',
+      to: 'rpx',
+      transform: (value, context) => {
+        const resolvedRootValue = typeof rootValue === 'function'
+          ? rootValue(context.input)
+          : rootValue
+        return value * resolvedRootValue * ratio
+      },
+    },
+    {
+      from: 'px',
+      to: 'rpx',
+      factor: ratio,
+    },
+  ]
+})
+
+const result = await postcss([
+  unitConverter({
+    rules: mobilePresetGroup({ rootValue: 16, ratio: 2 }),
+  }),
+]).process('.demo{font-size:1rem;margin:16px}', { from: undefined })
+```
+
 Custom transform rule:
 
 ```ts
@@ -114,8 +190,16 @@ const result = await postcss([
 - Prefer grouped presets when your project has one main unit system.
 - Prefer explicit custom rule arrays when you need tight control over rule order.
 - For `presets.viewportPresetGroup()`, choose `viewportUnit: 'vw'` or `viewportUnit: 'vh'` explicitly when you want one axis.
+- Prefer `definePreset(...)` and `definePresetGroup(...)` when authoring reusable presets in your own package or app config.
 
 ## Presets
+
+Custom preset authoring helpers:
+
+- `definePreset()`
+- `definePresetGroup()`
+- `type PresetFactory<TOptions>`
+- `type PresetGroupFactory<TOptions>`
 
 - `presets.remToPx()`
 - `presets.remToRpx()`
