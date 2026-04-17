@@ -65,8 +65,10 @@ export type NumericResolver = number | ((input: Input) => number)
  */
 export interface UserDefinedOptions {
   rules?: readonly ConversionRule[]
+  unitRegex?: RegExp | undefined
   unitPrecision?: number
   minValue?: number
+  keepZeroUnit?: boolean
   selectorBlackList?: (string | RegExp)[]
   propList?: (string | RegExp)[]
   replace?: boolean

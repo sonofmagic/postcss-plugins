@@ -1,4 +1,3 @@
-import type { Declaration, Rule } from 'postcss'
 import postcss from 'postcss'
 import pxTransform from '../src/index'
 import { transform } from './utils'
@@ -37,17 +36,12 @@ describe('harmony branch coverage', () => {
   })
 
   it('harmony selector blacklist should convert lowercase px using blacklist path', () => {
-    const result = postcss().process('view{width:10px}', { from: 'harmony.css' }).sync()
-    const prepared = pxTransform({
+    const result = postcss([pxTransform({
       platform: 'harmony',
       designWidth: 640,
       selectorBlackList: ['view'],
       deviceRatio,
-    }).prepare(result) as { Declaration: (decl: Declaration) => void }
-
-    const rule = result.root!.nodes![0] as Rule
-    const decl = rule.nodes![0] as Declaration
-    prepared.Declaration(decl)
-    expect(decl.value).toBe('10ch')
+    })]).process('view{width:10px}', { from: 'harmony.css' }).css
+    expect(result).toBe('view{width:10ch}')
   })
 })

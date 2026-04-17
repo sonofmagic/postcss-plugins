@@ -157,6 +157,7 @@ function createReplace(
   getRule: (unit: string) => ConversionRule | undefined,
   unitPrecision: number,
   minValue: number,
+  keepZeroUnit: boolean,
   context: Omit<RuleContext, 'fromUnit' | 'rawUnit' | 'rawValue' | 'match'>,
 ) {
   const shouldRound = unitPrecision >= 0 && unitPrecision <= 100
@@ -206,7 +207,7 @@ function createReplace(
     }
 
     const roundedValue = shouldRound ? toFixed(normalized.value, unitPrecision) : normalized.value
-    if (roundedValue === 0) {
+    if (roundedValue === 0 && !keepZeroUnit) {
       return '0'
     }
 
@@ -218,8 +219,10 @@ const plugin: PostcssUnitConverter = (options: UserDefinedOptions = {}) => {
   const resolved = getConfig(options)
   const {
     rules,
+    unitRegex: customUnitRegex,
     unitPrecision,
     minValue,
+    keepZeroUnit,
     selectorBlackList,
     propList,
     replace,
@@ -240,7 +243,11 @@ const plugin: PostcssUnitConverter = (options: UserDefinedOptions = {}) => {
   let unitRegex: RegExp
   let getRule: (unit: string) => ConversionRule | undefined
 
-  if (hasComplexMatcher) {
+  if (customUnitRegex) {
+    unitRegex = customUnitRegex
+    getRule = unit => getMatcherRule(entries, unit)
+  }
+  else if (hasComplexMatcher) {
     unitRegex = createAnyUnitRegex()
     getRule = unit => getMatcherRule(entries, unit)
   }
@@ -270,6 +277,7 @@ const plugin: PostcssUnitConverter = (options: UserDefinedOptions = {}) => {
             getRule,
             unitPrecision,
             minValue,
+            keepZeroUnit,
             context,
           )
         },

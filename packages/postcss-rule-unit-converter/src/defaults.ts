@@ -4,8 +4,10 @@ export type ResolvedOptions = Required<UserDefinedOptions>
 
 export const defaultOptions: ResolvedOptions = {
   rules: [] as Array<never>,
+  unitRegex: undefined,
   unitPrecision: 5,
   minValue: 0,
+  keepZeroUnit: false,
   selectorBlackList: [] as Array<string | RegExp>,
   propList: ['*'] as Array<string | RegExp>,
   replace: true,

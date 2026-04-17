@@ -4,7 +4,8 @@
 // Not anything inside single quotes
 // Not anything inside url()
 // Any digit followed by units
-import { createUnitRegex } from 'postcss-plugin-shared'
+
+const NUMBER_PATTERN = String.raw`\d*\.?\d+`
 
 /**
  * Build a px-matching regex with optional unit list.
@@ -19,9 +20,12 @@ import { createUnitRegex } from 'postcss-plugin-shared'
  * '1px 2rpx'.replace(regex, (m) => m)
  */
 export function pxRegex(units: string[] = ['px']) {
-  return createUnitRegex({
-    units,
-    numberPattern: String.raw`\d*\.?\d+`,
-    skipVar: false,
-  })
+  const unitPart = units.map(unit => unit.replace(/[\\^$.*+?()[\]{}|]/g, String.raw`\$&`)).join('|')
+  const parts: string[] = [
+    String.raw`"[^"]+"`,
+    String.raw`'[^']+'`,
+    String.raw`url\([^)]+\)`,
+    String.raw`(${NUMBER_PATTERN})(${unitPart})`,
+  ]
+  return new RegExp(parts.join('|'), 'g')
 }

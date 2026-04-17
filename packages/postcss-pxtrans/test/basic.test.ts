@@ -187,16 +187,13 @@ describe('propList advanced matcher', () => {
 })
 
 describe('additional coverage', () => {
-  it('should handle declaration without selector and avoid double processing', () => {
-    const result = postcss().process('.rule{width:10px}', { from: 'a.css' }).sync()
-    const visitor = (pxTransform as any)({ platform: 'h5', designWidth: 750 }).prepare(result)!
-    const orphanDecl = postcss.decl({ prop: 'width', value: '10px' })
+  it('should process declarations consistently across multiple runs', () => {
+    const plugin = pxTransform({ platform: 'h5', designWidth: 750 })
+    const first = postcss([plugin]).process('.rule{width:10px}', { from: 'a.css' }).css
+    const second = postcss([plugin]).process('.rule{width:10px}', { from: 'a.css' }).css
 
-    visitor.Declaration(orphanDecl)
-    expect(orphanDecl.value).toBe('0.25rem')
-
-    visitor.Declaration(orphanDecl)
-    expect(orphanDecl.value).toBe('0.25rem')
+    expect(first).toBe('.rule{width:0.25rem}')
+    expect(second).toBe('.rule{width:0.25rem}')
   })
 
   it('should ignore non-decl nodes in declarationExists', () => {

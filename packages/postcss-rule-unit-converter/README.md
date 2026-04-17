@@ -214,6 +214,11 @@ const result = await postcss([
 - `rawValue`: matched numeric text before `Number(...)`, for example `40`
 - `match`: full matched fragment, for example `40PX`
 
+Advanced matching options:
+
+- `unitRegex`: override the generated matching regex when you need custom parsing behavior such as matching inside `var(...)`
+- `keepZeroUnit`: keep `0px`, `0rem`, or custom zero outputs instead of collapsing them to bare `0`
+
 ## Rule Tips
 
 - Use `replace: false` when you want to keep fallback declarations beside converted values.
@@ -223,6 +228,8 @@ const result = await postcss([
 - For `presets.viewportPresetGroup()`, choose `viewportUnit: 'vw'` or `viewportUnit: 'vh'` explicitly when you want one axis.
 - Prefer `definePreset(...)` and `definePresetGroup(...)` when authoring reusable presets in your own package or app config.
 - Use `RuleContext.rawUnit`, `RuleContext.rawValue`, and `RuleContext.match` when your transform depends on original casing or exact matched text.
+- Use `unitRegex` when you need non-default matching behavior such as not skipping `var(...)` fallbacks.
+- Use `keepZeroUnit` when downstream tooling expects `0` to keep its explicit unit.
 - If you want more scenario-based examples, see the cookbook.
 
 ## Presets

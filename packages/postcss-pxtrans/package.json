@@ -31,6 +31,7 @@
   "scripts": {
     "dev": "tsup --watch --sourcemap",
     "build": "tsup",
+    "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:dev": "vitest",
     "bench": "vitest bench",

@@ -113,6 +113,42 @@ describe('postcss-rule-unit-converter', () => {
     expect(processed).toBe(output)
   })
 
+  it('supports custom unitRegex overrides', () => {
+    const input = '.rule { width: var(--gap, 40px); }'
+    const output = '.rule { width: var(--gap, 20px); }'
+    const processed = postcss(unitConverter({
+      rules: [
+        {
+          from: 'px',
+          to: 'px',
+          transform: value => value / 2,
+        },
+      ],
+      unitRegex: /"[^"]+"|'[^']+'|url\([^)]+\)|(\d+(?:\.\d+)?|\.\d+)(px)/g,
+      propList: ['width'],
+    })).process(input).css
+
+    expect(processed).toBe(output)
+  })
+
+  it('supports keeping units for zero values', () => {
+    const input = '.rule { width: 0px; }'
+    const output = '.rule { width: 0rem; }'
+    const processed = postcss(unitConverter({
+      keepZeroUnit: true,
+      rules: [
+        {
+          from: 'px',
+          to: 'rem',
+          factor: 1,
+        },
+      ],
+      propList: ['width'],
+    })).process(input).css
+
+    expect(processed).toBe(output)
+  })
+
   it('supports rpx, px, rem, vw, and vh conversion presets', () => {
     const input = '.rule { a: 20rpx; b: 20px; c: 2vw; d: 3vh; e: 1rem; }'
     const output = '.rule { a: 10px; b: 40rpx; c: 7.5px; d: 20.01px; e: 6vh; }'

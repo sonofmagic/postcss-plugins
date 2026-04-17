@@ -1,17 +1,15 @@
-import type {
-  AtRule,
-  Comment,
-  Declaration,
-  Input,
-  Result,
-  Rule,
-} from 'postcss'
+import type { Input, Result, Root } from 'postcss'
+import type { ConversionRule } from '../../postcss-rule-unit-converter/src/types'
 import type {
   PxTransformMethod,
   PxTransformOptions,
   PxTransformTargetUnit,
 } from './types'
-import { blacklistedSelector, createAdvancedPropListMatcher, declarationExists } from 'postcss-plugin-shared'
+import {
+  createAdvancedPropListMatcher,
+  createSelectorBlacklistMatcher,
+} from 'postcss-plugin-shared'
+import unitConverter from '../../postcss-rule-unit-converter/src/index'
 import { pxRegex } from './pixel-unit-regex'
 
 export { createDirectivePlugin } from './directives'
@@ -41,10 +39,9 @@ const DEFAULT_WEAPP_OPTIONS: Required<Pick<PxTransformOptions, 'platform' | 'des
   deviceRatio,
 }
 
-const processed = Symbol('processed')
 const SPECIAL_PIXEL = ['Px', 'PX', 'pX'] as const
 const SPECIAL_PIXEL_SET = new Set<string>(SPECIAL_PIXEL)
-const pxTestRE = /px/i
+const postcssPlugin = 'postcss-pxtrans'
 
 type RootValueFn = (input: Input, m: string, value: string) => number
 
@@ -58,61 +55,6 @@ function normalizeRootValue(value: unknown): RootValueFn {
   /* c8 ignore next */
   return () => defaults.rootValue
 }
-
-function createRoundWithPrecision(precision: number) {
-  if (!Number.isFinite(precision) || precision < 0 || precision > 100) {
-    return (value: number) => value
-  }
-  const multiplier = 10 ** (precision + 1)
-  const divider = multiplier * 0.1
-  return (value: number) => {
-    const wholeNumber = Math.floor(value * multiplier)
-    return Math.round(wholeNumber / 10) / divider
-  }
-}
-
-function createPxReplace(
-  rootValue: RootValueFn,
-  unitPrecision: number,
-  minPixelValue: number,
-  onePxTransform: boolean,
-  platform: string,
-  targetUnit: PxTransformTargetUnit,
-  unConvertTargetUnit: string | undefined,
-) {
-  const specialUnits = SPECIAL_PIXEL_SET
-  const isHarmony = platform === 'harmony'
-  const preserveUnit = unConvertTargetUnit ?? targetUnit
-  const roundWithPrecision = createRoundWithPrecision(unitPrecision)
-
-  return function createFileReplace(input: Input) {
-    return function replace(m: string, $1?: string) {
-      if (!$1) {
-        return m
-      }
-
-      if (isHarmony && specialUnits.has(m.slice(-2))) {
-        return `${$1}${preserveUnit}`
-      }
-
-      const pixels = Number.parseFloat($1)
-      if (!onePxTransform && pixels === 1) {
-        return isHarmony ? `${$1}${preserveUnit}` : m
-      }
-
-      if (pixels < minPixelValue) {
-        return isHarmony ? `${$1}${preserveUnit}` : m
-      }
-
-      let val = pixels / rootValue(input, m, $1)
-      val = roundWithPrecision(val)
-      // 不带单位不支持在calc表达式中参与计算(https://github.com/NervJS/taro/issues/12607)
-      return `${val}${targetUnit}`
-    }
-  }
-}
-
-const postcssPlugin = 'postcss-pxtrans'
 
 /**
  * Convert px (and rpx) to target units based on platform rules.
@@ -248,140 +190,135 @@ function plugin(userOptions: PxTransformOptions = {}) {
       ? true
       : options.onePxTransform
 
-  const pxRgx = pxRegex(transUnits)
+  const shouldHandleSize = opts.methods.includes('size')
+  const hasSelectorBlackList = Boolean(opts.selectorBlackList?.length)
   const satisfyPropList = createAdvancedPropListMatcher(opts.propList ?? defaults.propList)
+  /* c8 ignore end */
+
+  if (!shouldHandleSize) {
+    return { postcssPlugin }
+  }
+
+  const getRootValue = (() => {
+    if (!cacheComputedRootValue) {
+      return (_input: Input) => normalizeRootValue(opts.rootValue)
+    }
+
+    const cache = new WeakMap<Input, RootValueFn>()
+    return (input: Input) => {
+      const cached = cache.get(input)
+      if (cached) {
+        return cached
+      }
+
+      const value = (opts.rootValue as RootValueFn)(input, '', '')
+      const resolver: RootValueFn = () => value
+      cache.set(input, resolver)
+      return resolver
+    }
+  })()
+  const isHarmony = platform === 'harmony'
+  const preserveUnit = unConvertTargetUnit ?? targetUnit
   const unitPrecision = opts.unitPrecision ?? defaults.unitPrecision
   const minPixelValue = opts.minPixelValue ?? defaults.minPixelValue
-  const shouldHandleSize = opts.methods.includes('size')
-  const shouldHandleMedia = shouldHandleSize && Boolean(opts.mediaQuery)
-  const hasSelectorBlackList = Boolean(opts.selectorBlackList?.length)
-  /* c8 ignore end */
+  const isBlacklisted = hasSelectorBlackList
+    ? createSelectorBlacklistMatcher(opts.selectorBlackList as readonly (string | RegExp)[], { cache: true })
+    : undefined
+
+  const rules: ConversionRule[] = [
+    {
+      from: unit => unit === 'px' || unit === 'rpx',
+      transform(value, context) {
+        if (context.prop && !satisfyPropList(context.prop)) {
+          return undefined
+        }
+
+        const selectorBlocked = context.rule && isBlacklisted?.(context.rule)
+        if (selectorBlocked) {
+          if (!isHarmony) {
+            return undefined
+          }
+          return {
+            value,
+            unit: preserveUnit,
+          }
+        }
+
+        if (isHarmony && SPECIAL_PIXEL_SET.has(context.rawUnit)) {
+          return {
+            value,
+            unit: preserveUnit,
+          }
+        }
+
+        if (!onePxTransform && value === 1) {
+          return isHarmony
+            ? {
+                value,
+                unit: preserveUnit,
+              }
+            : undefined
+        }
+
+        if (value < minPixelValue) {
+          return isHarmony
+            ? {
+                value,
+                unit: preserveUnit,
+              }
+            : undefined
+        }
+
+        return {
+          value: value / getRootValue(context.input)(context.input, context.match, context.rawValue),
+          unit: targetUnit,
+        }
+      },
+    },
+  ]
+
+  const wrappedPlugin = unitConverter({
+    exclude: [],
+    keepZeroUnit: true,
+    mediaQuery: opts.mediaQuery ?? defaults.mediaQuery,
+    minValue: 0,
+    propList: ['*'],
+    replace: opts.replace ?? defaults.replace,
+    rules,
+    unitPrecision,
+    unitRegex: pxRegex(transUnits),
+  }) as { Once?: (css: Root) => void }
 
   return {
     postcssPlugin,
     prepare(result: Result) {
-      const root = result.root
-      const input = root?.source?.input
-      if (!input) {
-        return {}
-      }
-
-      root.walkComments((comment: Comment) => {
-        if (comment.text === 'postcss-pxtrans disable') {
-          root.raws.__pxtransSkip = true
-          return false
-        }
-        return undefined
-      })
-
-      const rootValue = cacheComputedRootValue
-        ? (() => {
-            const cached = (opts.rootValue as RootValueFn)(input, '', '')
-            return () => cached
-          })()
-        : normalizeRootValue(opts.rootValue)
-      const pxReplace = createPxReplace(
-        rootValue,
-        unitPrecision,
-        minPixelValue,
-        onePxTransform,
-        platform,
-        targetUnit,
-        unConvertTargetUnit,
-      )(input)
-
-      const shouldSkip = () => Boolean(result.root?.raws?.__pxtransSkip)
-      const blacklistedCache = hasSelectorBlackList ? new WeakMap<Rule, boolean>() : null
-      const isExcluded = exclude && exclude(result.opts.from)
-
-      if (shouldSkip()) {
-        return {}
-      }
-
-      if (isExcluded) {
-        return {}
-      }
+      const from = result.opts.from
+      const isExcluded = exclude
+        ? Array.isArray(exclude)
+          ? exclude.some((rule) => {
+              if (typeof rule === 'string') {
+                return from?.includes(rule)
+              }
+              return from ? Boolean(from.match(rule)) : false
+            })
+          : exclude(from)
+        : false
 
       return {
-        Declaration(decl: Declaration) {
-          if (shouldSkip()) {
-            return
-          }
-          if (!shouldHandleSize) {
-            return
-          }
-
-          if ((decl as any)[processed]) {
-            return
-          }
-          ;(decl as any)[processed] = true
-
-          if (!pxTestRE.test(decl.value)) {
-            return
-          }
-
-          if (!satisfyPropList(decl.prop)) {
-            return
-          }
-
-          const parent = decl.parent as Rule | undefined
-          let isBlacklisted = false
-          if (hasSelectorBlackList && parent) {
-            const cached = blacklistedCache?.get(parent)
-            if (cached !== undefined) {
-              isBlacklisted = cached
+        Once(css: Root) {
+          css.walkComments((comment) => {
+            if (comment.text === 'postcss-pxtrans disable') {
+              css.raws['__pxtransSkip'] = true
+              return false
             }
-            else {
-              isBlacklisted = blacklistedSelector(
-                opts.selectorBlackList as readonly (string | RegExp)[],
-                parent.selector,
-              )
-              blacklistedCache?.set(parent, isBlacklisted)
-            }
-          }
-          if (isBlacklisted && platform !== 'harmony') {
+            return undefined
+          })
+
+          if (css.raws['__pxtransSkip'] || isExcluded) {
             return
           }
 
-          /* c8 ignore start */
-          let value: string | undefined
-          if (isBlacklisted) {
-            pxRgx.lastIndex = 0
-            value = decl.value.replace(pxRgx, (m, $1) => {
-              return $1 ? `${$1}${unConvertTargetUnit}` : m
-            })
-          }
-          else {
-            pxRgx.lastIndex = 0
-            value = decl.value.replace(pxRgx, pxReplace)
-          }
-          /* c8 ignore end */
-
-          if (parent && declarationExists(parent, decl.prop, value)) {
-            return
-          }
-
-          if (opts.replace) {
-            decl.value = value
-          }
-          else {
-            decl.cloneAfter({ value })
-          }
-        },
-        AtRule: {
-          media(rule: AtRule) {
-            if (!shouldHandleMedia) {
-              return
-            }
-            if (shouldSkip()) {
-              return
-            }
-            if (!pxTestRE.test(rule.params)) {
-              return
-            }
-            pxRgx.lastIndex = 0
-            rule.params = rule.params.replace(pxRgx, pxReplace)
-          },
+          wrappedPlugin.Once?.(css)
         },
       }
     },
