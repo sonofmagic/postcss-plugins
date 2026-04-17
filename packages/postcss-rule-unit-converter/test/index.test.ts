@@ -159,4 +159,65 @@ describe('postcss-rule-unit-converter', () => {
 
     expect(processed).toBe(output)
   })
+
+  it('supports grouped presets for rpx-centric workflows', () => {
+    const input = '.rule { width: 16px; left: 10vw; top: 10vh; font-size: 1rem; }'
+    const output = '.rule { width: 32rpx; left: 75rpx; top: 133.4rpx; font-size: 32rpx; }'
+    const processed = postcss(unitConverter({
+      rules: presets.rpxPresetGroup({
+        rootValue: 16,
+        viewportWidth: 375,
+        viewportHeight: 667,
+      }),
+      propList: ['font', 'width', 'left', 'top'],
+      unitPrecision: 2,
+    })).process(input).css
+
+    expect(processed).toBe(output)
+  })
+
+  it('supports grouped presets for px-centric workflows', () => {
+    const input = '.rule { width: 1rem; height: 32rpx; margin-left: 10vw; margin-top: 10vh; }'
+    const output = '.rule { width: 16px; height: 16px; margin-left: 37.5px; margin-top: 66.7px; }'
+    const processed = postcss(unitConverter({
+      rules: presets.pxPresetGroup({
+        rootValue: 16,
+        viewportWidth: 375,
+        viewportHeight: 667,
+      }),
+      propList: ['width', 'height', 'margin-left', 'margin-top'],
+      unitPrecision: 2,
+    })).process(input).css
+
+    expect(processed).toBe(output)
+  })
+
+  it('supports grouped presets for viewport-centric workflows', () => {
+    const widthInput = '.rule { width: 16px; min-width: 32rpx; }'
+    const widthOutput = '.rule { width: 4.26667vw; min-width: 4.26667vw; }'
+    const widthProcessed = postcss(unitConverter({
+      rules: presets.viewportPresetGroup({
+        rootValue: 16,
+        viewportWidth: 375,
+      }),
+      propList: ['width', 'min-width'],
+      unitPrecision: 5,
+    })).process(widthInput).css
+
+    expect(widthProcessed).toBe(widthOutput)
+
+    const heightInput = '.rule { height: 16px; min-height: 32rpx; }'
+    const heightOutput = '.rule { height: 2.3988vh; min-height: 2.3988vh; }'
+    const heightProcessed = postcss(unitConverter({
+      rules: presets.viewportPresetGroup({
+        rootValue: 16,
+        viewportHeight: 667,
+        viewportUnit: 'vh',
+      }),
+      propList: ['height', 'min-height'],
+      unitPrecision: 5,
+    })).process(heightInput).css
+
+    expect(heightProcessed).toBe(heightOutput)
+  })
 })

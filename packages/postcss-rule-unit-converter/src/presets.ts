@@ -6,6 +6,10 @@ export interface LinearPresetOptions {
   to?: string
 }
 
+export interface RatioOptions {
+  ratio?: number
+}
+
 export interface RemBasedPresetOptions extends LinearPresetOptions {
   rootValue?: NumericResolver
 }
@@ -32,6 +36,26 @@ export interface UnitMapPresetOptions {
   minValue?: number
   unitMap?: Record<string, number>
   to?: string
+}
+
+export interface RpxPresetGroupOptions {
+  minValue?: number
+  ratio?: number
+  rootValue?: NumericResolver
+  viewportWidth?: NumericResolver
+  viewportHeight?: NumericResolver
+}
+
+export interface PxPresetGroupOptions {
+  minValue?: number
+  ratio?: number
+  rootValue?: NumericResolver
+  viewportWidth?: NumericResolver
+  viewportHeight?: NumericResolver
+}
+
+export interface ViewportGroupOptions extends PxPresetGroupOptions {
+  viewportUnit?: 'vw' | 'vh'
 }
 
 export function remToPx(options: RemBasedPresetOptions = {}): ConversionRule {
@@ -137,7 +161,7 @@ export function rpxToPx(options: LinearPresetOptions & { ratio?: number } = {}):
   }
 }
 
-export function pxToRpx(options: LinearPresetOptions & { ratio?: number } = {}): ConversionRule {
+export function pxToRpx(options: LinearPresetOptions & RatioOptions = {}): ConversionRule {
   const { minValue, ratio = 2, to = 'rpx' } = options
   return {
     from: 'px',
@@ -147,7 +171,7 @@ export function pxToRpx(options: LinearPresetOptions & { ratio?: number } = {}):
   }
 }
 
-export function rpxToRem(options: RemBasedPresetOptions & { ratio?: number } = {}): ConversionRule {
+export function rpxToRem(options: RemBasedPresetOptions & RatioOptions = {}): ConversionRule {
   const { minValue, rootValue = 16, ratio = 0.5, to = 'rem' } = options
   return {
     from: 'rpx',
@@ -157,7 +181,7 @@ export function rpxToRem(options: RemBasedPresetOptions & { ratio?: number } = {
   }
 }
 
-export function remToRpxRatio(options: RemBasedPresetOptions & { ratio?: number } = {}): ConversionRule {
+export function remToRpxRatio(options: RemBasedPresetOptions & RatioOptions = {}): ConversionRule {
   const { minValue, rootValue = 16, ratio = 2, to = 'rpx' } = options
   return {
     from: 'rem',
@@ -167,12 +191,12 @@ export function remToRpxRatio(options: RemBasedPresetOptions & { ratio?: number 
   }
 }
 
-export function remToRpxByRatio(options: RemBasedPresetOptions & { ratio?: number } = {}): ConversionRule {
+export function remToRpxByRatio(options: RemBasedPresetOptions & RatioOptions = {}): ConversionRule {
   return remToRpxRatio(options)
 }
 
-export function rpxToVw(options: ViewportPresetOptions & { ratio?: number } = {}): ConversionRule {
-  const { minValue, viewportWidth = 375, ratio = 0.5, to = 'vw' } = options as ViewportPresetOptions & { ratio?: number }
+export function rpxToVw(options: ViewportPresetOptions & RatioOptions = {}): ConversionRule {
+  const { minValue, viewportWidth = 375, ratio = 0.5, to = 'vw' } = options
   return {
     from: 'rpx',
     to,
@@ -181,7 +205,7 @@ export function rpxToVw(options: ViewportPresetOptions & { ratio?: number } = {}
   }
 }
 
-export function rpxToVh(options: ViewportHeightPresetOptions & { ratio?: number } = {}): ConversionRule {
+export function rpxToVh(options: ViewportHeightPresetOptions & RatioOptions = {}): ConversionRule {
   const { minValue, viewportHeight = 667, ratio = 0.5, to = 'vh' } = options
   return {
     from: 'rpx',
@@ -239,7 +263,7 @@ export function vhToRem(options: RemToViewportHeightPresetOptions = {}): Convers
   }
 }
 
-export function vwToRpx(options: ViewportPresetOptions & { ratio?: number } = {}): ConversionRule {
+export function vwToRpx(options: ViewportPresetOptions & RatioOptions = {}): ConversionRule {
   const { minValue, viewportWidth = 375, ratio = 2, to = 'rpx' } = options
   return {
     from: 'vw',
@@ -249,7 +273,7 @@ export function vwToRpx(options: ViewportPresetOptions & { ratio?: number } = {}
   }
 }
 
-export function vhToRpx(options: ViewportHeightPresetOptions & { ratio?: number } = {}): ConversionRule {
+export function vhToRpx(options: ViewportHeightPresetOptions & RatioOptions = {}): ConversionRule {
   const { minValue, viewportHeight = 667, ratio = 2, to = 'rpx' } = options
   return {
     from: 'vh',
@@ -282,6 +306,95 @@ export function unitsToPx(options: UnitMapPresetOptions = {}): ConversionRule[] 
   }))
 }
 
+/**
+ * Common preset group that normalizes `px/rem/vw/vh` into `rpx`.
+ */
+export function rpxPresetGroup(options: RpxPresetGroupOptions = {}): ConversionRule[] {
+  const {
+    minValue,
+    ratio = 2,
+    rootValue = 16,
+    viewportWidth = 375,
+    viewportHeight = 667,
+  } = options
+
+  return [
+    pxToRpx({ minValue, ratio, to: 'rpx' }),
+    remToRpxRatio({ minValue, ratio, rootValue, to: 'rpx' }),
+    vwToRpx({ minValue, ratio, viewportWidth, to: 'rpx' }),
+    vhToRpx({ minValue, ratio, viewportHeight, to: 'rpx' }),
+  ]
+}
+
+/**
+ * Common preset group that normalizes `rem/rpx/vw/vh` into `px`.
+ */
+export function pxPresetGroup(options: PxPresetGroupOptions = {}): ConversionRule[] {
+  const {
+    minValue,
+    ratio = 0.5,
+    rootValue = 16,
+    viewportWidth = 375,
+    viewportHeight = 667,
+  } = options
+
+  return [
+    remToPx({ minValue, rootValue, to: 'px' }),
+    rpxToPx({ minValue, ratio, to: 'px' }),
+    vwToPx({ minValue, viewportWidth, to: 'px' }),
+    vhToPx({ minValue, viewportHeight, to: 'px' }),
+  ]
+}
+
+/**
+ * Common preset group that normalizes `px/rem/rpx` into viewport units.
+ */
+export function viewportPresetGroup(options: ViewportGroupOptions = {}): ConversionRule[] {
+  const {
+    minValue,
+    ratio = 0.5,
+    rootValue = 16,
+    viewportWidth = 375,
+    viewportHeight = 667,
+    viewportUnit = 'vw',
+  } = options
+
+  return viewportUnit === 'vh'
+    ? [
+        pxToVh({ minValue, viewportHeight, to: 'vh' }),
+        remToVh({ minValue, rootValue, viewportHeight, to: 'vh' }),
+        rpxToVh({ minValue, ratio, viewportHeight, to: 'vh' }),
+      ]
+    : [
+        pxToVw({ minValue, viewportWidth, to: 'vw' }),
+        remToVw({ minValue, rootValue, viewportWidth, to: 'vw' }),
+        rpxToVw({ minValue, ratio, viewportWidth, to: 'vw' }),
+      ]
+}
+
+/**
+ * Common preset group for `rem/px/vw/vh` conversions in web-style layouts.
+ */
+export function webPresetGroup(options: PxPresetGroupOptions = {}): ConversionRule[] {
+  const {
+    minValue,
+    ratio = 2,
+    rootValue = 16,
+    viewportWidth = 375,
+    viewportHeight = 667,
+  } = options
+
+  return [
+    pxToRem({ minValue, rootValue, to: 'rem' }),
+    pxToVw({ minValue, viewportWidth, to: 'vw' }),
+    pxToVh({ minValue, viewportHeight, to: 'vh' }),
+    vwToRem({ minValue, rootValue, viewportWidth, to: 'rem' }),
+    vhToRem({ minValue, rootValue, viewportHeight, to: 'rem' }),
+    vwToRpx({ minValue, ratio, viewportWidth, to: 'rpx' }),
+    vhToRpx({ minValue, ratio, viewportHeight, to: 'rpx' }),
+  ]
+}
+
 export const presets = {
   remToPx,
   remToRpx,
@@ -306,5 +419,9 @@ export const presets = {
   vhToRem,
   vwToRpx,
   vhToRpx,
+  pxPresetGroup,
+  rpxPresetGroup,
+  viewportPresetGroup,
+  webPresetGroup,
   unitsToPx,
 }
