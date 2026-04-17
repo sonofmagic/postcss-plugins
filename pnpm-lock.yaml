@@ -219,6 +219,15 @@ importers:
         specifier: workspace:^
         version: link:../postcss-plugin-shared
 
+  packages/postcss-rule-unit-converter:
+    dependencies:
+      postcss:
+        specifier: ^8
+        version: 8.5.10
+      postcss-plugin-shared:
+        specifier: workspace:^
+        version: link:../postcss-plugin-shared
+
   packages/postcss-units-to-px:
     dependencies:
       postcss:
