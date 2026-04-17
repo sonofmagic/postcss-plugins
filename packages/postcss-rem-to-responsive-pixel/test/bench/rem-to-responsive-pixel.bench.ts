@@ -11,9 +11,11 @@ const sampleCss = `
   .modal { width: 20rem; height: 10rem; }
 }
 `.repeat(20)
+const largerCss = sampleCss.repeat(8)
 
 const defaultProcessor = postcss(remToPx({ propList: ['*'] }))
 const mediaProcessor = postcss(remToPx({ propList: ['*'], mediaQuery: true }))
+const rpxProcessor = postcss(remToPx({ propList: ['*'], transformUnit: 'rpx' }))
 
 describe('rem-to-responsive-pixel bench', () => {
   bench('default transform (propList=*)', () => {
@@ -22,5 +24,9 @@ describe('rem-to-responsive-pixel bench', () => {
 
   bench('media queries enabled', () => {
     void mediaProcessor.process(sampleCss, { from: 'bench.css' }).css
+  })
+
+  bench('rpx transform large stylesheet', () => {
+    void rpxProcessor.process(largerCss, { from: 'bench-rpx.css' }).css
   })
 })

@@ -24,11 +24,21 @@ ${makeRules(50)}
 `
 
 const pxtransProcessor = postcss(pxtrans({ propList: ['*'] }))
+const h5Processor = postcss(pxtrans({
+  designWidth: 640,
+  platform: 'h5',
+  propList: ['*'],
+  mediaQuery: true,
+}))
 const directiveProcessor = postcss(createDirectivePlugin({ platform: 'weapp' }))
 
 describe('postcss-pxtrans benchmarks', () => {
   bench('pxtrans transform', () => {
     void pxtransProcessor.process(baseCss, { from: 'bench.css' }).css
+  })
+
+  bench('pxtrans h5 transform', () => {
+    void h5Processor.process(baseCss, { from: 'bench-h5.css' }).css
   })
 
   bench('pxtrans directives', () => {

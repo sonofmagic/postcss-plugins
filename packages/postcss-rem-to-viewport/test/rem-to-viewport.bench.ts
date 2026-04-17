@@ -4,6 +4,10 @@ import { bench, describe } from 'vitest'
 import remToVw from '../src/index'
 
 const processor = postcss(remToVw())
+const mediaProcessor = postcss(remToVw({
+  mediaQuery: true,
+  propList: ['*'],
+}))
 
 function makeRules(count: number) {
   const rules: string[] = []
@@ -30,5 +34,9 @@ describe('postcss-rem-to-viewport benchmark', () => {
 
   bench('large stylesheet', async () => {
     await processor.process(largeCSS, { from: 'large.css' })
+  })
+
+  bench('medium stylesheet with media queries', async () => {
+    await mediaProcessor.process(`@media (min-width: 20rem) { ${mediumCSS} }`, { from: 'media.css' })
   })
 })

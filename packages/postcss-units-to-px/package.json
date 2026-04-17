@@ -50,6 +50,7 @@
   "scripts": {
     "dev": "tsdown -w",
     "build": "tsdown",
+    "bench": "vitest bench",
     "test": "vitest run",
     "test:dev": "vitest",
     "release": "pnpm publish",

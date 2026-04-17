@@ -1,12 +1,14 @@
+import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
+import os from 'node:os'
 import path from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
-import { execa } from 'execa'
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url))
 const rootDir = path.resolve(scriptDir, '..', '..')
 const packagesDir = path.join(rootDir, 'packages')
+const rootBenchmarksDir = path.join(rootDir, 'benchmarks')
 
 const rootPackage = JSON.parse(
   fs.readFileSync(path.join(rootDir, 'package.json'), 'utf8'),
@@ -16,6 +18,24 @@ const pnpmVersion = rootPackage.packageManager?.split('@')[1] ?? 'unknown'
 const vitestVersion = rootPackage.devDependencies?.vitest ?? 'unknown'
 const nodeVersion = process.version
 
+const rawArgs = process.argv.slice(2)
+const cliOptions = new Map()
+const filters = []
+
+for (const arg of rawArgs) {
+  if (arg === '--') {
+    continue
+  }
+
+  if (arg.startsWith('--label=')) {
+    cliOptions.set('label', arg.slice('--label='.length))
+    continue
+  }
+
+  filters.push(arg)
+}
+
+const label = cliOptions.get('label') ?? process.env.BENCHMARK_LABEL ?? new Date().toISOString().slice(0, 10)
 const timestamp = new Date().toISOString().replace('T', ' ').replace('Z', ' UTC')
 
 const tableHeaders = [
@@ -78,10 +98,12 @@ function buildReportMarkdown(pkgName, version, command, report) {
   lines.push('')
   lines.push(`## ${pkgName} ${version} - ${timestamp}`)
   lines.push('')
+  lines.push(`- Label: \`${label}\``)
   lines.push(`- Command: \`${command}\``)
   lines.push(`- Node: \`${nodeVersion}\``)
   lines.push(`- pnpm: \`${pnpmVersion}\``)
   lines.push(`- Vitest: \`${vitestVersion}\``)
+  lines.push(`- CPU: \`${os.cpus()?.[0]?.model ?? 'unknown'}\``)
   lines.push('')
 
   const groups = report.files.flatMap(file => file.groups)
@@ -103,80 +125,165 @@ function buildReportMarkdown(pkgName, version, command, report) {
   return lines.join('\n')
 }
 
-function normalizePackageFilter(entries) {
-  const filters = entries
-    .map(entry => entry.trim())
-    .filter(Boolean)
-  return new Set(filters)
+function buildSummaryMarkdown(items) {
+  const lines = []
+  lines.push('# Benchmark Baseline Summary')
+  lines.push('')
+  lines.push(`- Label: \`${label}\``)
+  lines.push(`- Generated at: \`${timestamp}\``)
+  lines.push(`- Node: \`${nodeVersion}\``)
+  lines.push(`- pnpm: \`${pnpmVersion}\``)
+  lines.push(`- Vitest: \`${vitestVersion}\``)
+  lines.push(`- CPU: \`${os.cpus()?.[0]?.model ?? 'unknown'}\``)
+  lines.push('')
+
+  if (!items.length) {
+    lines.push('No benchmark files were generated.')
+    lines.push('')
+    return lines.join('\n')
+  }
+
+  lines.push('| package | version | benches | report | raw |')
+  lines.push('| --- | --- | --- | --- | --- |')
+
+  for (const item of items) {
+    lines.push(`| ${item.name} | ${item.version} | ${item.count} | [md](${item.markdownRel}) | [json](${item.jsonRel}) |`)
+  }
+
+  lines.push('')
+  return lines.join('\n')
 }
 
-function listPackageDirs(filters) {
+function normalizePackageFilter(entries) {
+  const normalized = entries
+    .map(entry => entry.trim())
+    .filter(Boolean)
+  return new Set(normalized)
+}
+
+function hasBenchFiles(packageDir) {
+  const testDir = path.join(packageDir, 'test')
+  if (!fs.existsSync(testDir)) {
+    return false
+  }
+
+  const stack = [testDir]
+  while (stack.length > 0) {
+    const current = stack.pop()
+    if (!current) {
+      continue
+    }
+
+    const entries = fs.readdirSync(current, { withFileTypes: true })
+    for (const entry of entries) {
+      const fullPath = path.join(current, entry.name)
+      if (entry.isDirectory()) {
+        stack.push(fullPath)
+        continue
+      }
+      if (/\.bench\.(?:ts|mts|js|mjs)$/.test(entry.name)) {
+        return true
+      }
+    }
+  }
+
+  return false
+}
+
+function listPackageDirs(filterSet) {
   if (!fs.existsSync(packagesDir)) {
     return []
   }
+
   return fs
     .readdirSync(packagesDir, { withFileTypes: true })
     .filter(entry => entry.isDirectory())
     .map(entry => path.join(packagesDir, entry.name))
     .filter((dir) => {
-      if (!filters.size) {
+      if (!hasBenchFiles(dir)) {
+        return false
+      }
+
+      if (!filterSet.size) {
         return true
       }
+
       const baseName = path.basename(dir)
-      if (filters.has(baseName)) {
+      if (filterSet.has(baseName)) {
         return true
       }
+
       const packageJsonPath = path.join(dir, 'package.json')
       if (!fs.existsSync(packageJsonPath)) {
         return false
       }
+
       const pkg = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'))
-      return Boolean(pkg.name && filters.has(pkg.name))
+      return Boolean(pkg.name && filterSet.has(pkg.name))
     })
 }
 
 async function runBenchmarks() {
-  const filters = normalizePackageFilter(process.argv.slice(2))
-  const packageDirs = listPackageDirs(filters)
+  const filterSet = normalizePackageFilter(filters)
+  const packageDirs = listPackageDirs(filterSet)
+  const summaryDir = path.join(rootBenchmarksDir, label)
+
+  fs.mkdirSync(summaryDir, { recursive: true })
+
+  const summaryItems = []
 
   for (const packageDir of packageDirs) {
     const packageJsonPath = path.join(packageDir, 'package.json')
-    if (!fs.existsSync(packageJsonPath)) {
-      continue
-    }
-
     const pkg = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'))
-
     const pkgName = pkg.name ?? path.basename(packageDir)
     const version = pkg.version ?? '0.0.0'
     const outputDir = path.join(packageDir, 'benchmarks')
-    const outputJsonName = `${version}.json`
-    const outputJsonPath = path.join(outputDir, outputJsonName)
-    const outputMarkdownPath = path.join(outputDir, `${version}.md`)
+    const outputJsonPath = path.join(outputDir, `${label}.json`)
+    const outputMarkdownPath = path.join(outputDir, `${label}.md`)
 
     fs.mkdirSync(outputDir, { recursive: true })
 
-    const command = `pnpm -C ${path.relative(rootDir, packageDir)} exec vitest bench --outputJson benchmarks/${outputJsonName}`
+    const command = `pnpm -C ${path.relative(rootDir, packageDir)} exec vitest bench --outputJson benchmarks/${label}.json`
 
-    await execa('pnpm', [
+    execFileSync('pnpm', [
       '-C',
       packageDir,
       'exec',
       'vitest',
       'bench',
       '--outputJson',
-      `benchmarks/${outputJsonName}`,
+      `benchmarks/${label}.json`,
     ], { stdio: 'inherit' })
 
-    const report = JSON.parse(
-      fs.readFileSync(outputJsonPath, 'utf8'),
-    )
-
+    const report = JSON.parse(fs.readFileSync(outputJsonPath, 'utf8'))
     const markdown = buildReportMarkdown(pkgName, version, command, report)
+
     fs.writeFileSync(outputMarkdownPath, markdown)
 
-    fs.unlinkSync(outputJsonPath)
+    const groups = report.files.flatMap(file => file.groups)
+    const benchmarkCount = groups.reduce((total, group) => total + group.benchmarks.length, 0)
+
+    summaryItems.push({
+      count: benchmarkCount,
+      jsonRel: path.relative(summaryDir, outputJsonPath).replaceAll(path.sep, '/'),
+      markdownRel: path.relative(summaryDir, outputMarkdownPath).replaceAll(path.sep, '/'),
+      name: pkgName,
+      version,
+    })
   }
+
+  const summaryMarkdownPath = path.join(summaryDir, 'SUMMARY.md')
+  const manifestPath = path.join(summaryDir, 'manifest.json')
+
+  fs.writeFileSync(summaryMarkdownPath, buildSummaryMarkdown(summaryItems))
+  fs.writeFileSync(manifestPath, JSON.stringify({
+    generatedAt: timestamp,
+    label,
+    nodeVersion,
+    packages: summaryItems,
+    pnpmVersion,
+    vitestVersion,
+  }, null, 2))
 }
 
 await runBenchmarks()

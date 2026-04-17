@@ -27,6 +27,7 @@
   "scripts": {
     "dev": "tsup --watch --sourcemap",
     "build": "tsup",
+    "bench": "vitest bench",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"
   },
