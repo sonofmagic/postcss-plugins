@@ -252,8 +252,9 @@ const plugin: PostcssUnitConverter = (options: UserDefinedOptions = {}) => {
   return {
     postcssPlugin,
     Once(css) {
-      walkAndReplaceValues({
-        root: css,
+      type SharedWalkAndReplaceOptions = Parameters<typeof walkAndReplaceValues>[0]
+      const walkOptions: SharedWalkAndReplaceOptions = {
+        root: css as unknown as SharedWalkAndReplaceOptions['root'],
         unitRegex,
         propList,
         selectorBlackList,
@@ -269,7 +270,8 @@ const plugin: PostcssUnitConverter = (options: UserDefinedOptions = {}) => {
           )
         },
         shouldProcessAtRule: atRule => atRule.name === 'media',
-      })
+      }
+      walkAndReplaceValues(walkOptions)
     },
   }
 }

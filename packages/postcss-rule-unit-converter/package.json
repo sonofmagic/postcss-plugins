@@ -53,6 +53,7 @@
   "scripts": {
     "dev": "tsdown -w",
     "build": "tsdown",
+    "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:dev": "vitest",
     "release": "pnpm publish",

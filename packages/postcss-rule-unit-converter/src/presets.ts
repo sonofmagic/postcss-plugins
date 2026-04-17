@@ -63,6 +63,10 @@ export interface ViewportGroupOptions extends PxPresetGroupOptions {
   viewportUnit?: 'vw' | 'vh'
 }
 
+function maybeMinValue(minValue: number | undefined) {
+  return minValue === undefined ? {} : { minValue }
+}
+
 /**
  * Helper for authoring a typed single-rule preset.
  */
@@ -86,7 +90,7 @@ export function remToPx(options: RemBasedPresetOptions = {}): ConversionRule {
   return {
     from: 'rem',
     to,
-    minValue,
+    ...maybeMinValue(minValue),
     transform: (value, context) => value * resolveNumericValue(rootValue, context.input),
   }
 }
@@ -107,7 +111,7 @@ export function remToViewport(options: RemToViewportPresetOptions = {}): Convers
   return {
     from: 'rem',
     to,
-    minValue,
+    ...maybeMinValue(minValue),
     transform: (value, context) => {
       const resolvedRootValue = resolveNumericValue(rootValue, context.input)
       const resolvedViewportWidth = resolveNumericValue(viewportWidth, context.input)
@@ -128,7 +132,7 @@ export function remToVh(options: RemToViewportHeightPresetOptions = {}): Convers
   return {
     from: 'rem',
     to,
-    minValue,
+    ...maybeMinValue(minValue),
     transform: (value, context) => {
       const resolvedRootValue = resolveNumericValue(rootValue, context.input)
       const resolvedViewportHeight = resolveNumericValue(viewportHeight, context.input)
@@ -142,7 +146,7 @@ export function pxToRem(options: RemBasedPresetOptions = {}): ConversionRule {
   return {
     from: 'px',
     to,
-    minValue,
+    ...maybeMinValue(minValue),
     transform: (value, context) => value / resolveNumericValue(rootValue, context.input),
   }
 }
@@ -152,7 +156,7 @@ export function pxToViewport(options: ViewportPresetOptions = {}): ConversionRul
   return {
     from: 'px',
     to,
-    minValue,
+    ...maybeMinValue(minValue),
     transform: (value, context) => value * 100 / resolveNumericValue(viewportWidth, context.input),
   }
 }
@@ -169,7 +173,7 @@ export function pxToVh(options: ViewportHeightPresetOptions = {}): ConversionRul
   return {
     from: 'px',
     to,
-    minValue,
+    ...maybeMinValue(minValue),
     transform: (value, context) => value * 100 / resolveNumericValue(viewportHeight, context.input),
   }
 }
@@ -179,7 +183,7 @@ export function rpxToPx(options: LinearPresetOptions & { ratio?: number } = {}):
   return {
     from: 'rpx',
     to,
-    minValue,
+    ...maybeMinValue(minValue),
     factor: ratio,
   }
 }
@@ -189,7 +193,7 @@ export function pxToRpx(options: LinearPresetOptions & RatioOptions = {}): Conve
   return {
     from: 'px',
     to,
-    minValue,
+    ...maybeMinValue(minValue),
     factor: ratio,
   }
 }
@@ -199,7 +203,7 @@ export function rpxToRem(options: RemBasedPresetOptions & RatioOptions = {}): Co
   return {
     from: 'rpx',
     to,
-    minValue,
+    ...maybeMinValue(minValue),
     transform: (value, context) => value * ratio / resolveNumericValue(rootValue, context.input),
   }
 }
@@ -209,7 +213,7 @@ export function remToRpxRatio(options: RemBasedPresetOptions & RatioOptions = {}
   return {
     from: 'rem',
     to,
-    minValue,
+    ...maybeMinValue(minValue),
     transform: (value, context) => value * resolveNumericValue(rootValue, context.input) * ratio,
   }
 }
@@ -223,7 +227,7 @@ export function rpxToVw(options: ViewportPresetOptions & RatioOptions = {}): Con
   return {
     from: 'rpx',
     to,
-    minValue,
+    ...maybeMinValue(minValue),
     transform: (value, context) => value * ratio * 100 / resolveNumericValue(viewportWidth, context.input),
   }
 }
@@ -233,7 +237,7 @@ export function rpxToVh(options: ViewportHeightPresetOptions & RatioOptions = {}
   return {
     from: 'rpx',
     to,
-    minValue,
+    ...maybeMinValue(minValue),
     transform: (value, context) => value * ratio * 100 / resolveNumericValue(viewportHeight, context.input),
   }
 }
@@ -243,7 +247,7 @@ export function vwToPx(options: ViewportPresetOptions = {}): ConversionRule {
   return {
     from: 'vw',
     to,
-    minValue,
+    ...maybeMinValue(minValue),
     transform: (value, context) => value * resolveNumericValue(viewportWidth, context.input) / 100,
   }
 }
@@ -253,7 +257,7 @@ export function vhToPx(options: ViewportHeightPresetOptions = {}): ConversionRul
   return {
     from: 'vh',
     to,
-    minValue,
+    ...maybeMinValue(minValue),
     transform: (value, context) => value * resolveNumericValue(viewportHeight, context.input) / 100,
   }
 }
@@ -263,7 +267,7 @@ export function vwToRem(options: RemToViewportPresetOptions = {}): ConversionRul
   return {
     from: 'vw',
     to,
-    minValue,
+    ...maybeMinValue(minValue),
     transform: (value, context) => {
       const width = resolveNumericValue(viewportWidth, context.input)
       const root = resolveNumericValue(rootValue, context.input)
@@ -277,7 +281,7 @@ export function vhToRem(options: RemToViewportHeightPresetOptions = {}): Convers
   return {
     from: 'vh',
     to,
-    minValue,
+    ...maybeMinValue(minValue),
     transform: (value, context) => {
       const height = resolveNumericValue(viewportHeight, context.input)
       const root = resolveNumericValue(rootValue, context.input)
@@ -291,7 +295,7 @@ export function vwToRpx(options: ViewportPresetOptions & RatioOptions = {}): Con
   return {
     from: 'vw',
     to,
-    minValue,
+    ...maybeMinValue(minValue),
     transform: (value, context) => value * resolveNumericValue(viewportWidth, context.input) / 100 * ratio,
   }
 }
@@ -301,7 +305,7 @@ export function vhToRpx(options: ViewportHeightPresetOptions & RatioOptions = {}
   return {
     from: 'vh',
     to,
-    minValue,
+    ...maybeMinValue(minValue),
     transform: (value, context) => value * resolveNumericValue(viewportHeight, context.input) / 100 * ratio,
   }
 }
@@ -325,7 +329,7 @@ export function unitsToPx(options: UnitMapPresetOptions = {}): ConversionRule[] 
     from,
     to,
     factor,
-    minValue,
+    ...maybeMinValue(minValue),
   }))
 }
 
@@ -342,10 +346,10 @@ export function rpxPresetGroup(options: RpxPresetGroupOptions = {}): ConversionR
   } = options
 
   return [
-    pxToRpx({ minValue, ratio, to: 'rpx' }),
-    remToRpxRatio({ minValue, ratio, rootValue, to: 'rpx' }),
-    vwToRpx({ minValue, ratio, viewportWidth, to: 'rpx' }),
-    vhToRpx({ minValue, ratio, viewportHeight, to: 'rpx' }),
+    pxToRpx({ ...maybeMinValue(minValue), ratio, to: 'rpx' }),
+    remToRpxRatio({ ...maybeMinValue(minValue), ratio, rootValue, to: 'rpx' }),
+    vwToRpx({ ...maybeMinValue(minValue), ratio, viewportWidth, to: 'rpx' }),
+    vhToRpx({ ...maybeMinValue(minValue), ratio, viewportHeight, to: 'rpx' }),
   ]
 }
 
@@ -362,10 +366,10 @@ export function pxPresetGroup(options: PxPresetGroupOptions = {}): ConversionRul
   } = options
 
   return [
-    remToPx({ minValue, rootValue, to: 'px' }),
-    rpxToPx({ minValue, ratio, to: 'px' }),
-    vwToPx({ minValue, viewportWidth, to: 'px' }),
-    vhToPx({ minValue, viewportHeight, to: 'px' }),
+    remToPx({ ...maybeMinValue(minValue), rootValue, to: 'px' }),
+    rpxToPx({ ...maybeMinValue(minValue), ratio, to: 'px' }),
+    vwToPx({ ...maybeMinValue(minValue), viewportWidth, to: 'px' }),
+    vhToPx({ ...maybeMinValue(minValue), viewportHeight, to: 'px' }),
   ]
 }
 
@@ -384,14 +388,14 @@ export function viewportPresetGroup(options: ViewportGroupOptions = {}): Convers
 
   return viewportUnit === 'vh'
     ? [
-        pxToVh({ minValue, viewportHeight, to: 'vh' }),
-        remToVh({ minValue, rootValue, viewportHeight, to: 'vh' }),
-        rpxToVh({ minValue, ratio, viewportHeight, to: 'vh' }),
+        pxToVh({ ...maybeMinValue(minValue), viewportHeight, to: 'vh' }),
+        remToVh({ ...maybeMinValue(minValue), rootValue, viewportHeight, to: 'vh' }),
+        rpxToVh({ ...maybeMinValue(minValue), ratio, viewportHeight, to: 'vh' }),
       ]
     : [
-        pxToVw({ minValue, viewportWidth, to: 'vw' }),
-        remToVw({ minValue, rootValue, viewportWidth, to: 'vw' }),
-        rpxToVw({ minValue, ratio, viewportWidth, to: 'vw' }),
+        pxToVw({ ...maybeMinValue(minValue), viewportWidth, to: 'vw' }),
+        remToVw({ ...maybeMinValue(minValue), rootValue, viewportWidth, to: 'vw' }),
+        rpxToVw({ ...maybeMinValue(minValue), ratio, viewportWidth, to: 'vw' }),
       ]
 }
 
@@ -408,13 +412,13 @@ export function webPresetGroup(options: PxPresetGroupOptions = {}): ConversionRu
   } = options
 
   return [
-    pxToRem({ minValue, rootValue, to: 'rem' }),
-    pxToVw({ minValue, viewportWidth, to: 'vw' }),
-    pxToVh({ minValue, viewportHeight, to: 'vh' }),
-    vwToRem({ minValue, rootValue, viewportWidth, to: 'rem' }),
-    vhToRem({ minValue, rootValue, viewportHeight, to: 'rem' }),
-    vwToRpx({ minValue, ratio, viewportWidth, to: 'rpx' }),
-    vhToRpx({ minValue, ratio, viewportHeight, to: 'rpx' }),
+    pxToRem({ ...maybeMinValue(minValue), rootValue, to: 'rem' }),
+    pxToVw({ ...maybeMinValue(minValue), viewportWidth, to: 'vw' }),
+    pxToVh({ ...maybeMinValue(minValue), viewportHeight, to: 'vh' }),
+    vwToRem({ ...maybeMinValue(minValue), rootValue, viewportWidth, to: 'rem' }),
+    vhToRem({ ...maybeMinValue(minValue), rootValue, viewportHeight, to: 'rem' }),
+    vwToRpx({ ...maybeMinValue(minValue), ratio, viewportWidth, to: 'rpx' }),
+    vhToRpx({ ...maybeMinValue(minValue), ratio, viewportHeight, to: 'rpx' }),
   ]
 }
 
