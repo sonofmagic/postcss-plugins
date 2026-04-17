@@ -157,7 +157,7 @@ function createReplace(
   getRule: (unit: string) => ConversionRule | undefined,
   unitPrecision: number,
   minValue: number,
-  context: Omit<RuleContext, 'fromUnit'>,
+  context: Omit<RuleContext, 'fromUnit' | 'rawUnit' | 'rawValue' | 'match'>,
 ) {
   const shouldRound = unitPrecision >= 0 && unitPrecision <= 100
 
@@ -171,7 +171,8 @@ function createReplace(
       return m
     }
 
-    const fromUnit = $2.toLowerCase()
+    const rawUnit = $2
+    const fromUnit = rawUnit.toLowerCase()
     const rule = getRule(fromUnit)
     if (!rule) {
       return m
@@ -185,6 +186,9 @@ function createReplace(
     const ruleContext: RuleContext = {
       ...context,
       fromUnit,
+      match: m,
+      rawUnit,
+      rawValue: $1,
     }
 
     const fallbackUnit = rule.to ?? fromUnit

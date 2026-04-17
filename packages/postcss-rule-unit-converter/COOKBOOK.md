@@ -124,10 +124,7 @@ Use when:
 
 ```ts
 import type { PresetFactory, RemBasedPresetOptions } from 'postcss-rule-unit-converter'
-import unitConverter, {
-  definePreset
-
-} from 'postcss-rule-unit-converter'
+import unitConverter, { definePreset } from 'postcss-rule-unit-converter'
 
 const remToDp: PresetFactory<RemBasedPresetOptions> = definePreset((options = {}) => {
   const { rootValue = 16, minValue, to = 'dp' } = options
@@ -152,6 +149,41 @@ export default {
   ],
 }
 ```
+
+## Use Raw Match Context In Custom Rules
+
+```ts
+import unitConverter from 'postcss-rule-unit-converter'
+
+export default {
+  plugins: [
+    unitConverter({
+      rules: [
+        {
+          from: /^(px)$/i,
+          to: 'px',
+          transform(value, context) {
+            if (context.rawUnit === 'PX') {
+              return {
+                value,
+                unit: 'ch',
+              }
+            }
+
+            return Number(context.rawValue) / 2
+          },
+        },
+      ],
+    }),
+  ],
+}
+```
+
+Use when:
+
+- your transform logic depends on the original unit casing
+- you need the exact matched fragment such as `40PX`
+- you want access to normalized `fromUnit` and raw `rawUnit/rawValue/match` together
 
 ## Mix Group Presets With Manual Rules
 

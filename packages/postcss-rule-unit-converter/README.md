@@ -95,10 +95,7 @@ Single preset with exported types:
 ```ts
 import type { PresetFactory, RemBasedPresetOptions } from 'postcss-rule-unit-converter'
 import postcss from 'postcss'
-import unitConverter, {
-  definePreset
-
-} from 'postcss-rule-unit-converter'
+import unitConverter, { definePreset } from 'postcss-rule-unit-converter'
 
 const remToDp: PresetFactory<RemBasedPresetOptions> = definePreset((options = {}) => {
   const { rootValue = 16, minValue, to = 'dp' } = options
@@ -127,10 +124,7 @@ Grouped preset with exported types:
 ```ts
 import type { PresetGroupFactory, RemBasedPresetOptions } from 'postcss-rule-unit-converter'
 import postcss from 'postcss'
-import unitConverter, {
-  definePresetGroup
-
-} from 'postcss-rule-unit-converter'
+import unitConverter, { definePresetGroup } from 'postcss-rule-unit-converter'
 
 type MyPresetOptions = RemBasedPresetOptions & {
   ratio?: number
@@ -185,6 +179,41 @@ const result = await postcss([
 ]).process('.demo{letter-spacing:2x;margin:2x}', { from: undefined })
 ```
 
+Raw match context for advanced transforms:
+
+```ts
+import postcss from 'postcss'
+import unitConverter from 'postcss-rule-unit-converter'
+
+const result = await postcss([
+  unitConverter({
+    rules: [
+      {
+        from: /^(px)$/i,
+        to: 'px',
+        transform(value, context) {
+          if (context.rawUnit === 'PX') {
+            return {
+              value,
+              unit: 'ch',
+            }
+          }
+
+          return Number(context.rawValue) / 2
+        },
+      },
+    ],
+  }),
+]).process('.demo{width:40PX;height:40px}', { from: undefined })
+```
+
+`RuleContext` extends the shared replace context and also exposes:
+
+- `fromUnit`: normalized lowercase source unit
+- `rawUnit`: matched unit text before normalization, for example `PX`
+- `rawValue`: matched numeric text before `Number(...)`, for example `40`
+- `match`: full matched fragment, for example `40PX`
+
 ## Rule Tips
 
 - Use `replace: false` when you want to keep fallback declarations beside converted values.
@@ -193,6 +222,7 @@ const result = await postcss([
 - Prefer explicit custom rule arrays when you need tight control over rule order.
 - For `presets.viewportPresetGroup()`, choose `viewportUnit: 'vw'` or `viewportUnit: 'vh'` explicitly when you want one axis.
 - Prefer `definePreset(...)` and `definePresetGroup(...)` when authoring reusable presets in your own package or app config.
+- Use `RuleContext.rawUnit`, `RuleContext.rawValue`, and `RuleContext.match` when your transform depends on original casing or exact matched text.
 - If you want more scenario-based examples, see the cookbook.
 
 ## Presets

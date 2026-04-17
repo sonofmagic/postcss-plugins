@@ -87,6 +87,32 @@ describe('postcss-rule-unit-converter', () => {
     expect(processed).toBe(output)
   })
 
+  it('exposes raw match information to custom transforms', () => {
+    const input = '.rule { width: 40PX; height: 40px; }'
+    const output = '.rule { width: 40ch; height: 20px; }'
+    const processed = postcss(unitConverter({
+      rules: [
+        {
+          from: /^(px)$/i,
+          to: 'px',
+          transform(value, context) {
+            if (context.rawUnit === 'PX') {
+              return {
+                value,
+                unit: 'ch',
+              }
+            }
+
+            return value / 2
+          },
+        },
+      ],
+      propList: ['width', 'height'],
+    })).process(input).css
+
+    expect(processed).toBe(output)
+  })
+
   it('supports rpx, px, rem, vw, and vh conversion presets', () => {
     const input = '.rule { a: 20rpx; b: 20px; c: 2vw; d: 3vh; e: 1rem; }'
     const output = '.rule { a: 10px; b: 40rpx; c: 7.5px; d: 20.01px; e: 6vh; }'

@@ -11,6 +11,9 @@ export type UnitMatcher = string | RegExp | ((unit: string) => boolean)
  */
 export interface RuleContext extends ReplaceContext {
   fromUnit: string
+  rawUnit: string
+  rawValue: string
+  match: string
 }
 
 /**

@@ -124,10 +124,7 @@ export default {
 
 ```ts
 import type { PresetFactory, RemBasedPresetOptions } from 'postcss-rule-unit-converter'
-import unitConverter, {
-  definePreset
-
-} from 'postcss-rule-unit-converter'
+import unitConverter, { definePreset } from 'postcss-rule-unit-converter'
 
 const remToDp: PresetFactory<RemBasedPresetOptions> = definePreset((options = {}) => {
   const { rootValue = 16, minValue, to = 'dp' } = options
@@ -152,6 +149,41 @@ export default {
   ],
 }
 ```
+
+## 在自定义规则里使用原始匹配信息
+
+```ts
+import unitConverter from 'postcss-rule-unit-converter'
+
+export default {
+  plugins: [
+    unitConverter({
+      rules: [
+        {
+          from: /^(px)$/i,
+          to: 'px',
+          transform(value, context) {
+            if (context.rawUnit === 'PX') {
+              return {
+                value,
+                unit: 'ch',
+              }
+            }
+
+            return Number(context.rawValue) / 2
+          },
+        },
+      ],
+    }),
+  ],
+}
+```
+
+适用场景：
+
+- 转换逻辑依赖原始单位大小写
+- 需要拿到诸如 `40PX` 这样的完整匹配片段
+- 既想用归一化后的 `fromUnit`，又想同时访问 `rawUnit/rawValue/match`
 
 ## 分组 Preset 和手写规则混用
 
