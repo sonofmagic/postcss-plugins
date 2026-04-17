@@ -2,6 +2,8 @@
 
 基于规则的通用 PostCSS 单位转换插件。
 
+- 场景示例文档：[COOKBOOK.zh-CN.md](./COOKBOOK.zh-CN.md)
+
 ## 特性
 
 - 一个插件统一处理 `rpx`、`px`、`rem`、`vw`、`vh` 以及自定义单位
@@ -191,6 +193,7 @@ const result = await postcss([
 - 如果你要严格控制命中顺序，优先直接写显式规则数组。
 - 使用 `presets.viewportPresetGroup()` 时，建议显式指定 `viewportUnit: 'vw'` 或 `viewportUnit: 'vh'`。
 - 在业务里沉淀可复用 preset 时，优先使用 `definePreset(...)` 和 `definePresetGroup(...)`。
+- 如果你想直接抄场景配置，优先看 cookbook。
 
 ## Presets
 

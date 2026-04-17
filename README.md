@@ -8,7 +8,7 @@ A PostCSS plugin monorepo focused on unit conversion and responsive styling util
 - [postcss-rem-to-responsive-pixel](packages/postcss-rem-to-responsive-pixel) - Convert `rem` to `px` or `rpx`.
 - [postcss-rem-to-viewport](packages/postcss-rem-to-viewport) - Convert `rem` to viewport units (`vw` and others).
 - [postcss-pxtrans](packages/postcss-pxtrans) - Convert `px` to `rpx/rem/vw/px` with platform presets and directive comments.
-- [postcss-rule-unit-converter](packages/postcss-rule-unit-converter) - Unified rule-driven unit conversion plugin with built-in common presets.
+- [postcss-rule-unit-converter](packages/postcss-rule-unit-converter) - Unified rule-driven unit conversion plugin with built-in common presets. See also its cookbook.
 - [postcss-units-to-px](packages/postcss-units-to-px) - Convert multiple CSS units to `px` with configurable rules.
 
 Each package has its own README with usage and configuration details.

@@ -2,6 +2,8 @@
 
 Rule-driven PostCSS unit conversion plugin.
 
+- Cookbook: [COOKBOOK.md](./COOKBOOK.md)
+
 ## Features
 
 - One plugin for `rpx`, `px`, `rem`, `vw`, `vh`, and custom unit transforms
@@ -191,6 +193,7 @@ const result = await postcss([
 - Prefer explicit custom rule arrays when you need tight control over rule order.
 - For `presets.viewportPresetGroup()`, choose `viewportUnit: 'vw'` or `viewportUnit: 'vh'` explicitly when you want one axis.
 - Prefer `definePreset(...)` and `definePresetGroup(...)` when authoring reusable presets in your own package or app config.
+- If you want more scenario-based examples, see the cookbook.
 
 ## Presets
 
