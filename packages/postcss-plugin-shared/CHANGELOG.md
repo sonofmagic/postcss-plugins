@@ -1,5 +1,12 @@
 # postcss-plugin-shared
 
+## 1.1.3
+
+### Patch Changes
+
+- 🐛 **Migrate package builds from `tsup` to `tsdown` and align generated ESM/CJS declaration outputs.** [`96d9158`](https://github.com/sonofmagic/postcss-plugins/commit/96d9158903efbfd1ba0d3827a60f8769f782a5ee) by @sonofmagic
+  - For `postcss-pxtrans`, add a dedicated CommonJS compatibility entry so existing `require('postcss-pxtrans')` usage keeps working alongside the new `tsdown` pipeline.
+
 ## 1.1.2
 
 ### Patch Changes
