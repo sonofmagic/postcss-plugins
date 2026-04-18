@@ -5,4 +5,5 @@ const requireEntry = Object.assign(pxTransform, {
   createDirectivePlugin,
 })
 
+// eslint-disable-next-line no-restricted-syntax
 export = requireEntry
