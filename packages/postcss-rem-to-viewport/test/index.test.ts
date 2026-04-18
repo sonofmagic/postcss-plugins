@@ -1,3 +1,4 @@
+import type { AcceptedPlugin } from 'postcss'
 import postcss from 'postcss'
 import unitConverter, { presets } from '../../postcss-rule-unit-converter/src/index'
 
@@ -118,7 +119,7 @@ describe('remToVw', () => {
     }
 
     const legacy = postcss(remToVw(options)).process(input).css
-    const unified = postcss(unitConverter({
+    const unifiedPlugin = unitConverter({
       propList: options.propList,
       unitPrecision: options.unitPrecision,
       rules: [
@@ -128,7 +129,8 @@ describe('remToVw', () => {
           viewportWidth: options.rootValue,
         }),
       ],
-    })).process(input).css
+    }) as AcceptedPlugin
+    const unified = postcss([unifiedPlugin]).process(input).css
 
     expect(legacy).toBe(unified)
   })

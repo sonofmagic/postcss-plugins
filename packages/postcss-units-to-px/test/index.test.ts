@@ -1,3 +1,4 @@
+import type { AcceptedPlugin } from 'postcss'
 import postcss from 'postcss'
 import unitConverter, { composeRules, presets } from '../../postcss-rule-unit-converter/src/index'
 
@@ -19,11 +20,12 @@ describe('postcss-units-to-px', () => {
       unitPrecision: 5,
     }
     const legacy = postcss(unitsToPx(options)).process(input).css
-    const unified = postcss(unitConverter({
+    const unifiedPlugin = unitConverter({
       propList: options.propList,
       unitPrecision: options.unitPrecision,
       rules: composeRules(presets.unitsToPx()),
-    })).process(input).css
+    }) as AcceptedPlugin
+    const unified = postcss([unifiedPlugin]).process(input).css
 
     expect(legacy).toBe(unified)
   })

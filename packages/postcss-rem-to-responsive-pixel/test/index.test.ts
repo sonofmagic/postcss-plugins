@@ -1,3 +1,4 @@
+import type { AcceptedPlugin } from 'postcss'
 import postcss from 'postcss'
 import pxToRem from 'postcss-pxtorem'
 import unitConverter, { presets } from '../../postcss-rule-unit-converter/src/index'
@@ -93,7 +94,7 @@ describe('remToPx', () => {
     }
 
     const legacy = postcss(remToPx(options)).process(input).css
-    const unified = postcss(unitConverter({
+    const unifiedPlugin = unitConverter({
       propList: options.propList,
       unitPrecision: options.unitPrecision,
       rules: [
@@ -101,7 +102,8 @@ describe('remToPx', () => {
           ? presets.remToRpx({ rootValue: options.rootValue })
           : presets.remToPx({ rootValue: options.rootValue }),
       ],
-    })).process(input).css
+    }) as AcceptedPlugin
+    const unified = postcss([unifiedPlugin]).process(input).css
 
     expect(legacy).toBe(unified)
   })
@@ -317,7 +319,8 @@ describe('pxToRem', () => {
   it('should convert from px to rem and back using postcss-pxtorem', () => {
     const input
       = 'h1 { margin: 0 0 20px 8px; font-size: 13px; line-height: 1.2; letter-spacing: 1px; }'
-    const toRems = postcss(pxToRem()).process(input).css
+    const pxToRemPlugin = pxToRem() as AcceptedPlugin
+    const toRems = postcss([pxToRemPlugin]).process(input).css
     const processed = postcss(remToPx()).process(toRems).css
 
     expect(processed).toBe(input)

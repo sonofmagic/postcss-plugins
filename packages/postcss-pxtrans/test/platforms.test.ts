@@ -1,3 +1,4 @@
+import type { AcceptedPlugin } from 'postcss'
 import postcss from 'postcss'
 import unitConverter from '../../postcss-rule-unit-converter/src/index'
 import { pxRegex } from '../src/pixel-unit-regex'
@@ -60,7 +61,7 @@ describe('platform h5', () => {
   it('matches the equivalent rule-unit-converter output for h5 rem preset behavior', () => {
     const input = 'h1 {margin: 0 0 20px;font-size: 20rpx;line-height: 1.2;}'
     const legacy = transform(input, { platform: 'h5', designWidth: 640 })
-    const unified = postcss(unitConverter({
+    const unifiedPlugin = unitConverter({
       keepZeroUnit: true,
       propList: ['*'],
       unitRegex: pxRegex(['px', 'rpx']),
@@ -73,7 +74,8 @@ describe('platform h5', () => {
           },
         },
       ],
-    })).process(input, { from: 'input.css' }).css
+    }) as AcceptedPlugin
+    const unified = postcss([unifiedPlugin]).process(input, { from: 'input.css' }).css
 
     expect(legacy).toBe(unified)
   })
