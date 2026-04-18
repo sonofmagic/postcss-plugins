@@ -42,6 +42,11 @@ describe('shared helpers', () => {
     expect('padding: 0.3rem'.replace(remRegex, convert)).toBe('padding: 5px')
   })
 
+  it('createRemReplace returns the original match when capture is missing', () => {
+    const convert = createRemReplace(16, 2, 0)
+    expect(convert('1rem')).toBe('1rem')
+  })
+
   it('declarationExists detects duplicate declarations inside the same rule', () => {
     const root = postcss.parse('.rule { font-size: 16px; line-height: 24px; }')
     const rule = root.first! as any

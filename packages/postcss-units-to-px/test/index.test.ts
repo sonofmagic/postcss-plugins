@@ -137,6 +137,34 @@ describe('postcss-units-to-px', () => {
     expect(processed).toBe(output)
   })
 
+  it('skips empty entries in array-form unit maps', () => {
+    const input = '.rule { font-size: 1rem; }'
+    const unitMap = [
+      undefined,
+      ['rem', 20],
+    ] as unknown as Array<[string | RegExp | ((unit: string) => boolean), number]>
+    const processed = postcss(
+      unitsToPx({
+        unitMap,
+      }),
+    ).process(input).css
+
+    expect(processed).toBe('.rule { font-size: 20px; }')
+  })
+
+  it('treats undefined unit rules as null passthrough rules', () => {
+    const input = '.rule { font-size: 1rem; }'
+    const processed = postcss(
+      unitsToPx({
+        unitMap: [
+          ['rem', undefined],
+        ] as unknown as Array<[string | RegExp | ((unit: string) => boolean), number]>,
+      }),
+    ).process(input).css
+
+    expect(processed).toBe(input)
+  })
+
   it('respects propList and replace=false behavior', () => {
     const input = '.rule { font-size: 1rem; margin: 1rem; }'
     const output = '.rule { font-size: 1rem; font-size: 16px; margin: 1rem; }'

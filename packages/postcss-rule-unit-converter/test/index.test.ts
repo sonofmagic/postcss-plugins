@@ -1,6 +1,12 @@
 import postcss from 'postcss'
 
-import unitConverter, { composeRules, presets } from '../src/index'
+import unitConverter, {
+  composeRules,
+  definePreset,
+  definePresetGroup,
+  presets,
+  resolveNumericValue,
+} from '../src/index'
 
 describe('postcss-rule-unit-converter', () => {
   it('converts with custom rules', () => {
@@ -281,5 +287,247 @@ describe('postcss-rule-unit-converter', () => {
     })).process(heightInput).css
 
     expect(heightProcessed).toBe(heightOutput)
+  })
+
+  it('exposes preset helpers and shared helpers for direct authoring', () => {
+    const single = definePreset((options: { factor?: number } = {}) => ({
+      from: 'foo',
+      to: 'bar',
+      factor: options.factor ?? 2,
+    }))
+    const grouped = definePresetGroup((options: { factor?: number } = {}) => [
+      single(options),
+    ])
+
+    expect(single({ factor: 3 })).toEqual({
+      from: 'foo',
+      to: 'bar',
+      factor: 3,
+    })
+    expect(grouped()).toEqual([
+      {
+        from: 'foo',
+        to: 'bar',
+        factor: 2,
+      },
+    ])
+    expect(composeRules(grouped(), single({ factor: 4 }))).toEqual([
+      { from: 'foo', to: 'bar', factor: 2 },
+      { from: 'foo', to: 'bar', factor: 4 },
+    ])
+
+    const input = postcss.parse('.rule{}', { from: '/src/design.css' }).source!.input
+    expect(resolveNumericValue(12, input)).toBe(12)
+    expect(resolveNumericValue(source => source.file?.endsWith('design.css') ? 20 : 10, input)).toBe(20)
+  })
+
+  it('supports dynamic resolver branches for preset factories', () => {
+    const input = postcss.parse('.rule{}', { from: '/src/dynamic.css' }).source!.input
+    const context = { input } as any
+
+    expect(presets.remToResponsivePixel({
+      rootValue: source => source.file?.endsWith('dynamic.css') ? 20 : 16,
+    }).transform?.(2, context)).toBe(40)
+    expect(presets.remToRpxByRatio({
+      rootValue: () => 10,
+      ratio: 3,
+    }).transform?.(2, context)).toBe(60)
+    expect(presets.pxToRem({
+      rootValue: () => 20,
+    }).transform?.(20, context)).toBe(1)
+    expect(presets.remToVh({
+      rootValue: () => 10,
+      viewportHeight: () => 500,
+    }).transform?.(2, context)).toBe(4)
+    expect(presets.pxToViewport({
+      viewportWidth: () => 250,
+    }).transform?.(20, context)).toBe(8)
+    expect(presets.pxToVh({
+      viewportHeight: () => 500,
+    }).transform?.(25, context)).toBe(5)
+    expect(presets.rpxToRem({
+      rootValue: () => 10,
+      ratio: 0.5,
+    }).transform?.(20, context)).toBe(1)
+    expect(presets.rpxToVw({
+      viewportWidth: () => 250,
+      ratio: 1,
+    }).transform?.(20, context)).toBe(8)
+    expect(presets.rpxToVh({
+      viewportHeight: () => 500,
+      ratio: 1,
+    }).transform?.(20, context)).toBe(4)
+    expect(presets.vwToPx({
+      viewportWidth: () => 250,
+    }).transform?.(20, context)).toBe(50)
+    expect(presets.vhToPx({
+      viewportHeight: () => 500,
+    }).transform?.(20, context)).toBe(100)
+    expect(presets.vwToRem({
+      viewportWidth: () => 250,
+      rootValue: () => 10,
+    }).transform?.(20, context)).toBe(5)
+    expect(presets.vhToRem({
+      viewportHeight: () => 500,
+      rootValue: () => 10,
+    }).transform?.(20, context)).toBe(10)
+    expect(presets.vwToRpx({
+      viewportWidth: () => 250,
+      ratio: 1,
+    }).transform?.(20, context)).toBe(50)
+    expect(presets.vhToRpx({
+      viewportHeight: () => 500,
+      ratio: 1,
+    }).transform?.(20, context)).toBe(100)
+
+    expect(presets.remToVw({ to: 'lvw' }).to).toBe('lvw')
+    expect(presets.pxToVw({ to: 'svw' }).to).toBe('svw')
+    expect(presets.remToVw({ to: null as any }).to).toBe('vw')
+    expect(presets.pxToVw({ to: null as any }).to).toBe('vw')
+  })
+
+  it('returns stable grouped preset definitions for web workflows', () => {
+    const rules = presets.webPresetGroup({
+      minValue: 1,
+      ratio: 3,
+      rootValue: 20,
+      viewportWidth: 320,
+      viewportHeight: 640,
+    })
+
+    expect(rules).toHaveLength(7)
+    expect(rules.map(rule => rule.from)).toEqual(['px', 'px', 'px', 'vw', 'vh', 'vw', 'vh'])
+    expect(rules.every(rule => rule.minValue === 1)).toBe(true)
+    expect(rules.at(-1)?.from).toBe('vh')
+    expect(rules.at(-1)?.to).toBe('rpx')
+    expect(rules.at(-1)?.minValue).toBe(1)
+    expect(rules.at(-1)?.factor).toBeCloseTo(19.2)
+  })
+
+  it('handles invalid rules and early-return branches without mutating css', () => {
+    const noop = unitConverter()
+    expect(noop).toEqual({ postcssPlugin: 'postcss-rule-unit-converter' })
+
+    const disabled = unitConverter({
+      disabled: true,
+      rules: [presets.remToPx()],
+    })
+    expect(disabled).toEqual({ postcssPlugin: 'postcss-rule-unit-converter' })
+
+    const invalidOnly = unitConverter({
+      rules: [
+        {
+          from: '   ' as any,
+          to: 'px',
+          factor: 16,
+        },
+      ],
+    })
+    expect(invalidOnly).toEqual({ postcssPlugin: 'postcss-rule-unit-converter' })
+
+    const input = '.rule { width: 1rem; }'
+    const output = postcss(unitConverter({
+      rules: [
+        {
+          from: '   ' as any,
+          to: 'px',
+          factor: 16,
+        },
+        presets.remToPx(),
+      ],
+    })).process(input).css
+
+    expect(output).toBe('.rule { width: 16px; }')
+  })
+
+  it('covers transform fallback branches and sticky/global matcher resets', () => {
+    const input = '.rule { a: 1foo; b: 2foo; c: 3foo; d: 4foo; e: 0foo; first: 1bar; second: 2bar; weird: NaNfoo; }'
+    const output = '.rule { a: 1foo; b: 2foo; c: 3foo; d: 8foo; e: 0; first: 10px; second: 20px; weird: NaNfoo; }'
+    const processed = postcss(unitConverter({
+      rules: [
+        {
+          from: 'foo',
+          transform(value, context) {
+            switch (context.prop) {
+              case 'a':
+                return undefined
+              case 'b':
+                return Number.NaN
+              case 'c':
+                return { value: Number.NaN }
+              case 'd':
+                return value * 2
+              case 'e':
+                return { value: 0, unit: 'bar' }
+              default:
+                return undefined
+            }
+          },
+        },
+        {
+          from: /^bar$/gy,
+          to: 'px',
+          transform: value => value * 10,
+        },
+      ],
+      propList: ['*'],
+      unitRegex: /(\d+(?:\.\d+)?|\.\d+|NaN)(foo|bar)/g,
+    })).process(input).css
+
+    expect(processed).toBe(output)
+  })
+
+  it('ignores unsupported matcher types without breaking valid rules', () => {
+    const input = '.rule { width: 1rem; }'
+    const output = '.rule { width: 16px; }'
+    const processed = postcss(unitConverter({
+      rules: [
+        {
+          from: 123 as any,
+          to: 'px',
+          factor: 999,
+        },
+        presets.remToPx(),
+      ],
+      propList: ['width'],
+    })).process(input).css
+
+    expect(processed).toBe(output)
+  })
+
+  it('supports out-of-range precision and function matchers', () => {
+    const input = '.rule { width: 1baz; }'
+    const output = '.rule { width: 0.3333333333333333qux; }'
+    const processed = postcss(unitConverter({
+      rules: [
+        {
+          from: unit => unit === 'baz',
+          to: 'qux',
+          factor: 1 / 3,
+        },
+      ],
+      unitPrecision: 101,
+      propList: ['width'],
+      unitRegex: /(\d+(?:\.\d+)?|\.\d+)(baz)/g,
+    })).process(input).css
+
+    expect(processed).toBe(output)
+  })
+
+  it('keeps original units when a rule omits the target unit', () => {
+    const input = '.rule { width: 2abc; }'
+    const output = '.rule { width: 6abc; }'
+    const processed = postcss(unitConverter({
+      rules: [
+        {
+          from: 'abc',
+          factor: 3,
+        },
+      ],
+      propList: ['width'],
+      unitRegex: /(\d+(?:\.\d+)?|\.\d+)(abc)/g,
+    })).process(input).css
+
+    expect(processed).toBe(output)
   })
 })

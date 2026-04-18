@@ -93,6 +93,36 @@ describe('postcss-plugin-shared', () => {
       const rule = root.first!
       expect(declarationExists(rule as any, 'font-size', '16px')).toBe(false)
     })
+
+    it('falls back to .some() when declarations are not index-addressable', () => {
+      const nodes = [
+        { type: 'comment' },
+        { type: 'decl', prop: 'font-size', value: '16px' },
+      ]
+
+      const decls = {
+        some(cb: (node: any) => boolean) {
+          return nodes.some(cb)
+        },
+      }
+
+      expect(declarationExists(decls as any, 'font-size', '16px')).toBe(true)
+      expect(declarationExists(decls as any, 'font-size', '12px')).toBe(false)
+    })
+
+    it('supports array-like declaration containers without relying on .some()', () => {
+      const decls = {
+        0: { type: 'comment' },
+        1: { type: 'decl', prop: 'font-size', value: '16px' },
+        length: 2,
+        some() {
+          throw new Error('should not use .some for array-like containers')
+        },
+      }
+
+      expect(declarationExists(decls as any, 'font-size', '16px')).toBe(true)
+      expect(declarationExists(decls as any, 'line-height', '16px')).toBe(false)
+    })
   })
 
   describe('regex', () => {
