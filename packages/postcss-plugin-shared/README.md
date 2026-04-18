@@ -229,7 +229,7 @@ if (!declarationExists(rule, decl.prop, nextValue)) {
 
 ## Development
 
-This package uses `tsup`:
+This package uses `tsdown`:
 
 - `pnpm -C packages/postcss-plugin-shared dev`
 - `pnpm -C packages/postcss-plugin-shared build`

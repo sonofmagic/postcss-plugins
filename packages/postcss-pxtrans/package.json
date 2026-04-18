@@ -29,8 +29,8 @@
     "dist"
   ],
   "scripts": {
-    "dev": "tsup --watch --sourcemap",
-    "build": "tsup",
+    "dev": "tsdown -w",
+    "build": "tsdown",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:dev": "vitest",
@@ -50,14 +50,14 @@
       ".": {
         "types": {
           "import": "./dist/index.d.mts",
-          "require": "./dist/index.d.ts"
+          "require": "./dist/index.require.d.cts"
         },
         "import": "./dist/index.mjs",
-        "require": "./dist/index.cjs"
+        "require": "./dist/index.require.cjs"
       }
     },
-    "main": "./dist/index.cjs",
+    "main": "./dist/index.require.cjs",
     "module": "./dist/index.mjs",
-    "types": "./dist/index.d.ts"
+    "types": "./dist/index.d.mts"
   }
 }
