@@ -47,6 +47,17 @@ interface UserDefinedOptions {
 - `exclude`: skip files by path or predicate.
 - `disabled`: no-op mode.
 
+### Choosing Between `exclude`, `selectorBlackList`, and `propList`
+
+- `exclude`: skip the whole file before any declaration is processed
+- `selectorBlackList`: skip matching selectors inside an otherwise processed file
+- `propList`: skip or include specific CSS properties inside matched selectors
+
+Use `exclude` for file-level boundaries such as `node_modules` or generated CSS.
+Use `selectorBlackList` when a rule or component should be left untouched. Use
+`propList` when the file and selector should still be processed, but some
+properties such as `font-size` or `--wot-*-font-size` should be skipped.
+
 ## Rules
 
 ```ts

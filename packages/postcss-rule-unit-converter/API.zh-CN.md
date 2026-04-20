@@ -47,6 +47,17 @@ interface UserDefinedOptions {
 - `exclude`：按文件路径或 predicate 跳过整文件。
 - `disabled`：禁用插件。
 
+### `exclude`、`selectorBlackList`、`propList` 怎么选
+
+- `exclude`：文件级跳过，命中后整个文件都不处理
+- `selectorBlackList`：选择器级跳过，文件仍会继续处理
+- `propList`：属性级控制，在命中的规则里决定哪些属性处理、哪些属性跳过
+
+适合用 `exclude` 的场景是 `node_modules`、生成产物、整类文件不想处理。
+适合用 `selectorBlackList` 的场景是某些组件或规则整体保留原样。适合用
+`propList` 的场景是文件和选择器仍然需要处理，但像 `font-size` 或
+`--wot-*-font-size` 这样的属性需要跳过。
+
 ## 规则类型
 
 ```ts
