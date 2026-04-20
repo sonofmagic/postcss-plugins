@@ -1,5 +1,25 @@
 # postcss-pxtrans
 
+## 1.0.4
+
+### Patch Changes
+
+- 🐛 **Improve `propList` exclusion matching so negated entries are easier to use in** [`c060ee4`](https://github.com/sonofmagic/postcss-plugins/commit/c060ee45106be6ab1439a34ccef5b903ddd24deb) by @sonofmagic
+  real-world configs.
+
+  For `createPropListMatcher`-based packages and `postcss-rem-to-responsive-pixel`,
+  negated string entries now support:
+
+  - exact exclusions like `!font-size`
+  - glob exclusions like `!padding*`
+  - arbitrary-position glob exclusions like `!--wot-*-font-size`
+
+  Also align `createAdvancedPropListMatcher` with the same glob behavior for
+  strings containing `*`, which also affects `postcss-pxtrans`.
+
+- 📦 **Dependencies** [`c060ee4`](https://github.com/sonofmagic/postcss-plugins/commit/c060ee45106be6ab1439a34ccef5b903ddd24deb)
+  → `postcss-plugin-shared@1.1.4`
+
 ## 1.0.3
 
 ### Patch Changes
