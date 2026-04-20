@@ -234,6 +234,19 @@ describe('propList', () => {
 
     expect(processed).toBe(expected)
   })
+
+  it('should keep excluded font-related properties as rem when transformUnit is rpx', () => {
+    const rules = '.rule { margin: 1rem; font: 1rem/1.5rem sans-serif; font-size: 0.9375rem; line-height: 1.5rem; letter-spacing: 0.0625rem; padding: 0.5rem }'
+    const expected = '.rule { margin: 32rpx; font: 1rem/1.5rem sans-serif; font-size: 0.9375rem; line-height: 1.5rem; letter-spacing: 0.0625rem; padding: 16rpx }'
+    const options = {
+      rootValue: 32,
+      propList: ['*', '!font', '!font-size', '!line-height', '!letter-spacing'],
+      transformUnit: 'rpx' as const,
+    }
+    const processed = postcss(remToPx(options)).process(rules).css
+
+    expect(processed).toBe(expected)
+  })
 })
 
 describe('selectorBlackList', () => {
