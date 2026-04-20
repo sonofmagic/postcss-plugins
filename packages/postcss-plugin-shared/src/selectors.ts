@@ -84,45 +84,57 @@ export function createSelectorBlacklistMatcher(
  * const matchProp = createPropListMatcher(['font', /size/])
  * matchProp('font-size') // true
  */
-export function createPropListMatcher(propList: readonly (string | RegExp)[]) {
-  const hasWild = propList.includes('*')
-  return function satisfyPropList(prop: string) {
-    if (hasWild) {
-      return true
+function createStringRuleMatcher(rule: string, mode: 'negative' | 'positive') {
+  if (rule.includes('*')) {
+    const globRegex = new RegExp(`^${escapeRegExp(rule).replaceAll('\\*', '.*')}$`)
+    return function matchGlob(prop: string) {
+      return globRegex.test(prop)
     }
-    return propList.some((rule) => {
-      if (typeof rule === 'string') {
-        return prop.includes(rule)
-      }
-      return Boolean(prop.match(rule))
-    })
+  }
+
+  if (mode === 'negative') {
+    return function matchExact(prop: string) {
+      return prop === rule
+    }
+  }
+
+  return function matchContains(prop: string) {
+    return prop.includes(rule)
   }
 }
 
-function filterPropList(list: readonly string[]) {
-  return {
-    exact: list.filter(m => /^[^*!]+$/.test(m)),
-    contain: list
-      .filter(m => /^\*.+\*$/.test(m))
-      .map(m => m.substring(1, m.length - 1)),
-    endWith: list
-      .filter(m => /^\*[^*]+$/.test(m))
-      .map(m => m.substring(1)),
-    startWith: list
-      .filter(m => /^[^*!]+\*$/.test(m))
-      .map(m => m.substring(0, m.length - 1)),
-    notExact: list
-      .filter(m => /^![^*].*$/.test(m))
-      .map(m => m.substring(1)),
-    notContain: list
-      .filter(m => /^!\*.+\*$/.test(m))
-      .map(m => m.substring(2, m.length - 1)),
-    notEndWith: list
-      .filter(m => /^!\*[^*]+$/.test(m))
-      .map(m => m.substring(2)),
-    notStartWith: list
-      .filter(m => /^![^*]+\*$/.test(m))
-      .map(m => m.substring(1, m.length - 1)),
+function escapeRegExp(value: string) {
+  return value.replace(/[\\^$.*+?()[\]{}|]/g, String.raw`\$&`)
+}
+
+export function createPropListMatcher(propList: readonly (string | RegExp)[]) {
+  const hasWild = propList.includes('*')
+  const positiveRules = propList.filter((rule) => {
+    return typeof rule !== 'string' || !rule.startsWith('!')
+  })
+  const negativeRules = propList.filter((rule): rule is string => {
+    return typeof rule === 'string' && rule.startsWith('!')
+  })
+  const positiveStringMatchers = positiveRules
+    .filter((rule): rule is string => typeof rule === 'string' && rule !== '*')
+    .map(rule => createStringRuleMatcher(rule, 'positive'))
+  const positiveRegexRules = positiveRules
+    .filter((rule): rule is RegExp => rule instanceof RegExp)
+  const negativeMatchers = negativeRules
+    .map(rule => createStringRuleMatcher(rule.substring(1), 'negative'))
+
+  return function satisfyPropList(prop: string) {
+    if (hasWild && negativeRules.length === 0) {
+      return true
+    }
+
+    const shouldInclude = hasWild
+      || positiveStringMatchers.some(match => match(prop))
+      || positiveRegexRules.some(rule => Boolean(prop.match(rule)))
+
+    const shouldExclude = negativeMatchers.some(match => match(prop))
+
+    return shouldInclude && !shouldExclude
   }
 }
 
@@ -134,10 +146,28 @@ function filterPropList(list: readonly string[]) {
  * matchProp('padding') // true
  * matchProp('border-color') // false
  */
+function createAdvancedStringRuleMatcher(rule: string) {
+  if (rule.includes('*')) {
+    const globRegex = new RegExp(`^${escapeRegExp(rule).replaceAll('\\*', '.*')}$`)
+    return function matchGlob(prop: string) {
+      return globRegex.test(prop)
+    }
+  }
+
+  return function matchExact(prop: string) {
+    return prop === rule
+  }
+}
+
 export function createAdvancedPropListMatcher(propList: readonly string[]) {
   const hasWild = propList.includes('*')
   const matchAll = hasWild && propList.length === 1
-  const lists = filterPropList(propList)
+  const positiveMatchers = propList
+    .filter(rule => rule !== '*' && !rule.startsWith('!'))
+    .map(rule => createAdvancedStringRuleMatcher(rule))
+  const negativeMatchers = propList
+    .filter(rule => rule.startsWith('!'))
+    .map(rule => createAdvancedStringRuleMatcher(rule.substring(1)))
 
   return function satisfyPropList(prop: string) {
     if (matchAll) {
@@ -146,18 +176,10 @@ export function createAdvancedPropListMatcher(propList: readonly string[]) {
 
     const shouldInclude = (
       hasWild
-      || lists.exact.includes(prop)
-      || lists.contain.some(m => prop.includes(m))
-      || lists.startWith.some(m => prop.startsWith(m))
-      || lists.endWith.some(m => prop.endsWith(m))
+      || positiveMatchers.some(match => match(prop))
     )
 
-    const shouldExclude = (
-      lists.notExact.includes(prop)
-      || lists.notContain.some(m => prop.includes(m))
-      || lists.notStartWith.some(m => prop.startsWith(m))
-      || lists.notEndWith.some(m => prop.endsWith(m))
-    )
+    const shouldExclude = negativeMatchers.some(match => match(prop))
 
     return shouldInclude && !shouldExclude
   }

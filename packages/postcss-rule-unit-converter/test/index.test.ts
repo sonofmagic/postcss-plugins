@@ -60,6 +60,17 @@ describe('postcss-rule-unit-converter', () => {
     expect(processed).toBe(output)
   })
 
+  it('supports user-style glob exclusions in propList', () => {
+    const input = '.rule { margin: 1rem; font-size: 1rem; line-height: 1.5rem; font: 1rem/1.5 sans-serif; --wot-color: 1rem; --wot-fs-title: 1rem; --wot-body-font-size: 1rem; --other-font-size: 1rem }'
+    const output = '.rule { margin: 16px; font-size: 1rem; line-height: 1.5rem; font: 1rem/1.5 sans-serif; --wot-color: 1rem; --wot-fs-title: 1rem; --wot-body-font-size: 1rem; --other-font-size: 16px }'
+    const processed = postcss(unitConverter({
+      rules: [presets.remToPx()],
+      propList: ['*', '!font-size', '!line-height', '!font', '!--wot-*', '!--wot-fs-*', '!--wot-*-font-size'],
+    })).process(input).css
+
+    expect(processed).toBe(output)
+  })
+
   it('ignores quoted strings, url(), var(), and excluded files', () => {
     const input = '.rule { content: "1rem"; background: url(1rem.png); gap: var(--gap, 1rem); font-size: 1rem; }'
     const excluded = postcss(unitConverter({

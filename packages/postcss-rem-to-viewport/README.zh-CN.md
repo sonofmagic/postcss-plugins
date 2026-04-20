@@ -76,6 +76,12 @@ const defaultOptions = {
 
 需要从 rem 转换的属性列表。
 
+字符串条目仍然保持现在的“包含匹配”行为；以 `!` 开头的字符串条目表示排除属性；只要字符串里包含 `*`，就会按 glob 模式匹配，例如：
+
+```js
+propList: ['*', '!font-size', '!padding*', '!--wot-*-font-size']
+```
+
 ## selectorBlackList
 
 类型：`(string | RegExp)[]`

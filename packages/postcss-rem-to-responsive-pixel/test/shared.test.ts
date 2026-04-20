@@ -64,10 +64,14 @@ describe('shared helpers', () => {
   it('createPropListMatcher respects wildcards, regex and strings', () => {
     const anyProp = createPropListMatcher(['*'])
     const limited = createPropListMatcher(['font', /^margin$/])
+    const withExcludes = createPropListMatcher(['*', '!font-size', '!padding*'])
 
     expect(anyProp('border-left')).toBe(true)
     expect(limited('margin')).toBe(true)
     expect(limited('padding')).toBe(false)
+    expect(withExcludes('font-size')).toBe(false)
+    expect(withExcludes('padding-right')).toBe(false)
+    expect(withExcludes('margin')).toBe(true)
   })
 
   it('createExcludeMatcher supports arrays, functions and undefined file paths', () => {

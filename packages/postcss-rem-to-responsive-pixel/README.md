@@ -117,6 +117,18 @@ Type: `(string | RegExp)[]`
 
 The properties that can change from rem to px.
 
+String entries keep the existing substring-match behavior. String entries
+starting with `!` exclude properties. If a string contains `*`, it is treated
+as a glob pattern:
+
+```js
+propList: ['*', '!font-size', '!padding*']
+```
+
+- `!font-size`: exclude the exact property
+- `!padding*`: exclude `padding`, `padding-left`, `padding-right`, etc.
+- `!--wot-*-font-size`: exclude custom properties like `--wot-body-font-size`
+
 ## selectorBlackList
 
 Type: `(string | RegExp)[]`
@@ -168,7 +180,8 @@ If disable this plugin.
 
 ### A message about ignoring properties
 
-Currently, the easiest way to have a single property ignored is to use a capital in the rem unit declaration.
+If you only want to skip a few properties, prefer configuring `propList` with
+negated entries. Uppercase units are still supported as a compatibility trick.
 
 ```text
 // `rem` is converted to `px`

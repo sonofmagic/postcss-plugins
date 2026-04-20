@@ -133,6 +133,18 @@ describe('propList', () => {
     const processed = transform(css, options)
     expect(processed).toBe(expected)
   })
+
+  it('should support arbitrary-position glob exclusions', () => {
+    const css = '.rule { width: 16px; --wot-color: 16px; --wot-fs-title: 16px; --wot-body-font-size: 16px; --other-font-size: 16px }'
+    const expected = '.rule { width: 0.468rem; --wot-color: 16px; --wot-fs-title: 16px; --wot-body-font-size: 16px; --other-font-size: 0.468rem }'
+    const options = {
+      platform: 'h5',
+      designWidth: 640,
+      propList: ['*', '!--wot-*', '!--wot-fs-*', '!--wot-*-font-size'],
+    } as const
+    const processed = transform(css, options)
+    expect(processed).toBe(expected)
+  })
 })
 
 describe('selectorBlackList & replace/media', () => {

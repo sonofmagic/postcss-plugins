@@ -115,6 +115,16 @@ const defaultOptions = {
 
 需要从 rem 转换的属性列表。
 
+字符串条目仍然保持现在的“包含匹配”行为；以 `!` 开头的字符串条目表示排除属性；只要字符串里包含 `*`，就会按 glob 模式匹配，例如：
+
+```js
+propList: ['*', '!font-size', '!padding*']
+```
+
+- `!font-size`：排除精确属性
+- `!padding*`：排除 `padding`、`padding-left`、`padding-right` 等属性
+- `!--wot-*-font-size`：排除 `--wot-body-font-size` 这类自定义属性
+
 ## selectorBlackList
 
 类型：`(string | RegExp)[]`
@@ -166,7 +176,7 @@ const defaultOptions = {
 
 ### 关于“忽略 rem”的说明
 
-目前最简单的方式是使用大写单位来标记不转换（浏览器仍可识别）：
+如果只是想跳过少量属性，优先使用带 `!` 的 `propList` 配置。大写单位仍然保留，作为兼容技巧使用：
 
 ```text
 // `rem` 会被转换

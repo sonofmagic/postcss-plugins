@@ -40,7 +40,8 @@ interface UserDefinedOptions {
 - `minValue`：全局最小转换阈值。
 - `keepZeroUnit`：保留 `0px`、`0rem` 这类带单位的零值输出，而不是折叠成裸 `0`。
 - `selectorBlackList`：命中这些选择器时跳过。
-- `propList`：仅处理匹配的属性。
+- `propList`：仅处理匹配的属性。支持 `!font-size`、`!padding*`、
+  `!--wot-*-font-size` 这类取反 / glob 写法。
 - `replace`：是否直接替换原声明；否则追加 fallback。
 - `mediaQuery`：是否处理 `@media` 参数中的单位。
 - `exclude`：按文件路径或 predicate 跳过整文件。

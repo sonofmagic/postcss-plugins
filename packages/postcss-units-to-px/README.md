@@ -114,6 +114,10 @@ Type: `(string | RegExp)[]`
 
 Only declarations with matching properties are processed. Supports `'*'` to match all properties.
 
+Negated string entries like `!font-size` exclude exact properties. Strings
+containing `*` use glob matching, so patterns like `!padding*` and
+`!--wot-*-font-size` are supported.
+
 ### selectorBlackList
 
 Type: `(string | RegExp)[]`

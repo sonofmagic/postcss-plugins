@@ -178,7 +178,7 @@ RN eject:
 - `methods`: `['platform', 'size']`, can disable directive handling or size conversion
 - `unitPrecision`: `number`, decimal precision
 - `selectorBlackList`: `(string | RegExp)[]`, skip if matched (Harmony still converts to `ch`)
-- `propList`: `string[]`, property allow/deny list (wildcards and negation supported)
+- `propList`: `string[]`, property allow/deny list (wildcards and negation supported, including patterns like `!--wot-*-font-size`)
 - `replace`: `boolean`, when `false` it appends a new declaration
 - `mediaQuery`: `boolean`, convert px in `@media`
 - `minPixelValue`: `number`, values lower than this are not converted (Harmony still converts to `ch`)
@@ -217,6 +217,12 @@ pxTransform({
   platform: 'h5',
   designWidth: 640,
   propList: ['*font*', 'margin*', '!margin-left', '*-right', 'pad'],
+})
+
+pxTransform({
+  platform: 'h5',
+  designWidth: 640,
+  propList: ['*', '!--wot-*', '!--wot-fs-*', '!--wot-*-font-size'],
 })
 ```
 

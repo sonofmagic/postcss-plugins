@@ -165,8 +165,12 @@ Builds a matcher `(prop: string) => boolean` to decide whether a CSS property sh
 Rules:
 
 - If `propList` includes `'*'`, it matches everything.
+- String entries prefixed with `!` exclude properties. Negated strings support
+  `!foo` (exact) and glob patterns like `!foo*`, `!*foo`, `!*foo*`,
+  `!--wot-*-font-size`.
 - Otherwise:
-  - `string`: `prop.includes(rule)`
+  - `string` without `*`: `prop.includes(rule)`
+  - `string` with `*`: glob matching
   - `RegExp`: `Boolean(prop.match(rule))`
 
 ```ts
@@ -176,6 +180,13 @@ const match = createPropListMatcher(['font', /height$/])
 match('font-size') // true (contains 'font')
 match('line-height') // true (/height$/)
 match('color') // false
+
+const matchWithExcludes = createPropListMatcher(['*', '!font-size', '!padding*'])
+matchWithExcludes('font-size') // false
+matchWithExcludes('padding-right') // false
+
+const matchCustomProps = createPropListMatcher(['*', '!--wot-*-font-size'])
+matchCustomProps('--wot-body-font-size') // false
 ```
 
 ### `createAdvancedPropListMatcher(propList)`
@@ -184,9 +195,7 @@ Advanced property matcher for `string[]` `propList`, compatible with `postcss-px
 
 - `*` matches all properties
 - `foo` exact match
-- `foo*` prefix match
-- `*foo` suffix match
-- `*foo*` contains match
+- strings containing `*` use glob matching, such as `foo*`, `*foo`, `*foo*`, `!--wot-*-font-size`
 - `!pattern` negates (deny-list)
 
 ```ts

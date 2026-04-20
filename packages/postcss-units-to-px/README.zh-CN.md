@@ -95,6 +95,8 @@ postcss(unitsToPx({ unitMap }))
 
 只处理匹配的属性。支持 `'*'` 表示全部属性。
 
+以 `!` 开头的字符串可用于排除精确属性，例如 `!font-size`。只要字符串中包含 `*`，就会按 glob 模式匹配，因此也支持 `!padding*` 和 `!--wot-*-font-size`。
+
 ### selectorBlackList
 
 类型: `(string | RegExp)[]`

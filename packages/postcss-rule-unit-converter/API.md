@@ -40,7 +40,8 @@ interface UserDefinedOptions {
 - `minValue`: global minimum source value to convert.
 - `keepZeroUnit`: keep `0px`/`0rem` style output instead of collapsing to bare `0`.
 - `selectorBlackList`: skip matching selectors.
-- `propList`: restrict processing to matching properties.
+- `propList`: restrict processing to matching properties. Supports negated
+  string entries like `!font-size`, `!padding*`, and `!--wot-*-font-size`.
 - `replace`: replace the original declaration instead of cloning a fallback declaration.
 - `mediaQuery`: also convert matching units in `@media` params.
 - `exclude`: skip files by path or predicate.

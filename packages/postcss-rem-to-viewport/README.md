@@ -75,6 +75,14 @@ Type: `(string | RegExp)[]`
 
 The properties that can change from rem to px.
 
+String entries keep the existing substring-match behavior. String entries
+starting with `!` exclude properties. If a string contains `*`, it is treated
+as a glob pattern:
+
+```js
+propList: ['*', '!font-size', '!padding*', '!--wot-*-font-size']
+```
+
 ## selectorBlackList
 
 Type: `(string | RegExp)[]`

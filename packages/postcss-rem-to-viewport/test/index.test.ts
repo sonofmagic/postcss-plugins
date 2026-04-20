@@ -237,6 +237,17 @@ describe('propList', () => {
 
     expect(processed).toBe(expected)
   })
+
+  it('should support user-style glob exclusions for custom properties', () => {
+    const rules = '.rule { margin: 1rem; font-size: 1rem; line-height: 1.5rem; font: 1rem/1.5 sans-serif; --wot-color: 1rem; --wot-fs-title: 1rem; --wot-body-font-size: 1rem; --other-font-size: 1rem }'
+    const expected = '.rule { margin: 4.266666666666667vw; font-size: 1rem; line-height: 1.5rem; font: 1rem/1.5 sans-serif; --wot-color: 1rem; --wot-fs-title: 1rem; --wot-body-font-size: 1rem; --other-font-size: 4.266666666666667vw }'
+    const options = {
+      propList: ['*', '!font-size', '!line-height', '!font', '!--wot-*', '!--wot-fs-*', '!--wot-*-font-size'],
+    }
+    const processed = postcss(remToVw(options)).process(rules).css
+
+    expect(processed).toBe(expected)
+  })
 })
 
 describe('selectorBlackList', () => {

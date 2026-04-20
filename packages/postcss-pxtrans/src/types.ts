@@ -138,6 +138,7 @@ export interface PxTransformOptions {
   selectorBlackList?: readonly (string | RegExp)[]
   /**
    * Properties to transform.
+   * Supports negated glob patterns like `!padding*` or `!--wot-*-font-size`.
    *
    * @default ['*']
    */

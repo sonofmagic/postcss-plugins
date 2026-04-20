@@ -180,6 +180,18 @@ describe('postcss-units-to-px', () => {
     expect(processed).toBe(output)
   })
 
+  it('supports user-style glob exclusions for custom properties', () => {
+    const input = '.rule { margin: 1rem; font-size: 1rem; line-height: 1.5rem; font: 1rem/1.5 sans-serif; --wot-color: 1rem; --wot-fs-title: 1rem; --wot-body-font-size: 1rem; --other-font-size: 1rem }'
+    const output = '.rule { margin: 16px; font-size: 1rem; line-height: 1.5rem; font: 1rem/1.5 sans-serif; --wot-color: 1rem; --wot-fs-title: 1rem; --wot-body-font-size: 1rem; --other-font-size: 16px }'
+    const processed = postcss(
+      unitsToPx({
+        propList: ['*', '!font-size', '!line-height', '!font', '!--wot-*', '!--wot-fs-*', '!--wot-*-font-size'],
+      }),
+    ).process(input).css
+
+    expect(processed).toBe(output)
+  })
+
   it('does not duplicate existing declarations when replace=false', () => {
     const input = '.rule { font-size: 1rem; font-size: 16px; }'
     const processed = postcss(

@@ -217,6 +217,35 @@ describe('postcss-plugin-shared', () => {
       expect(matcher('padding')).toBe(false)
     })
 
+    it('createPropListMatcher supports negated string entries', () => {
+      const matcher = createPropListMatcher(['*', '!font-size', '!padding*', 'line'])
+      expect(matcher('margin')).toBe(true)
+      expect(matcher('font-size')).toBe(false)
+      expect(matcher('padding-right')).toBe(false)
+      expect(matcher('line-height')).toBe(true)
+    })
+
+    it('createPropListMatcher supports glob-style negated custom property entries', () => {
+      const matcher = createPropListMatcher([
+        '*',
+        '!font-size',
+        '!line-height',
+        '!font',
+        '!--wot-*',
+        '!--wot-fs-*',
+        '!--wot-*-font-size',
+      ])
+
+      expect(matcher('margin')).toBe(true)
+      expect(matcher('font-size')).toBe(false)
+      expect(matcher('line-height')).toBe(false)
+      expect(matcher('font')).toBe(false)
+      expect(matcher('--wot-color')).toBe(false)
+      expect(matcher('--wot-fs-title')).toBe(false)
+      expect(matcher('--wot-body-font-size')).toBe(false)
+      expect(matcher('--other-font-size')).toBe(true)
+    })
+
     it('createExcludeMatcher handles undefined file paths', () => {
       const matcher = createExcludeMatcher(['node_modules'])
       expect(matcher(undefined)).toBe(false)
@@ -313,6 +342,20 @@ describe('postcss-plugin-shared', () => {
       const matcher = createAdvancedPropListMatcher(['*end'])
       expect(matcher('line-end')).toBe(true)
       expect(matcher('line-start')).toBe(false)
+    })
+
+    it('createAdvancedPropListMatcher supports arbitrary glob positions', () => {
+      const matcher = createAdvancedPropListMatcher([
+        '*',
+        'custom-*-size',
+        '!*temp*',
+        '!--wot-*-font-size',
+      ])
+
+      expect(matcher('custom-button-size')).toBe(true)
+      expect(matcher('custom-button-color')).toBe(true)
+      expect(matcher('--wot-body-font-size')).toBe(false)
+      expect(matcher('my-temp-token')).toBe(false)
     })
   })
 

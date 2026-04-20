@@ -116,6 +116,8 @@ export interface UserDefinedOptions {
   selectorBlackList?: (string | RegExp)[]
   /**
    * Only declarations with matching properties are processed.
+   * Supports negated string entries like `!font-size`, `!padding*`,
+   * or glob patterns such as `!--wot-*-font-size`.
    *
    * @default ['*']
    */

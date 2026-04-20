@@ -70,6 +70,10 @@ export interface UserDefinedOptions {
   minValue?: number
   keepZeroUnit?: boolean
   selectorBlackList?: (string | RegExp)[]
+  /**
+   * Supports negated string entries like `!font-size`, `!padding*`,
+   * or glob patterns such as `!--wot-*-font-size`.
+   */
   propList?: (string | RegExp)[]
   replace?: boolean
   mediaQuery?: boolean

@@ -178,7 +178,7 @@ RN eject：
 - `methods`: `['platform', 'size']`，可禁用平台指令或尺寸转换
 - `unitPrecision`: `number`，小数保留位数
 - `selectorBlackList`: `(string | RegExp)[]`，命中则跳过（Harmony 仍会转 `ch`）
-- `propList`: `string[]`，属性白/黑名单（支持通配符与取反）
+- `propList`: `string[]`，属性白/黑名单（支持通配符与取反，也支持 `!--wot-*-font-size` 这类模式）
 - `replace`: `boolean`，`false` 时追加新声明
 - `mediaQuery`: `boolean`，是否转换 `@media` 中的 px
 - `minPixelValue`: `number`，小于该值时不转换（Harmony 仍会转 `ch`）
@@ -217,6 +217,12 @@ pxTransform({
   platform: 'h5',
   designWidth: 640,
   propList: ['*font*', 'margin*', '!margin-left', '*-right', 'pad'],
+})
+
+pxTransform({
+  platform: 'h5',
+  designWidth: 640,
+  propList: ['*', '!--wot-*', '!--wot-fs-*', '!--wot-*-font-size'],
 })
 ```
 

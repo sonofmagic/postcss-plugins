@@ -140,15 +140,23 @@ const re = createUnitRegex({ units: ['px', 'rpx'], ignoreCase: true })
 
 生成一个 `(prop: string) => boolean` 的匹配器，用于快速判断某个 CSS 属性是否需要处理。
 
+规则：
+
+- 包含 `'*'` 时默认匹配全部属性
+- 以 `!` 开头的字符串表示排除属性，支持：
+  - `!foo`：精确排除
+  - `!foo*`、`!*foo`、`!*foo*`、`!--wot-*-font-size`：按 glob 模式排除
+- 其他不带 `*` 的字符串仍然使用 `prop.includes(rule)` 规则
+- 带 `*` 的字符串按 glob 模式匹配
+- `RegExp` 使用 `Boolean(prop.match(rule))`
+
 ### `createAdvancedPropListMatcher(propList)`
 
 用于 `string[]` 的高级 `propList` 匹配器（兼容 `postcss-pxtrans` 的写法）：
 
 - `*`：匹配所有属性
 - `foo`：精确匹配
-- `foo*`：前缀匹配
-- `*foo`：后缀匹配
-- `*foo*`：包含匹配
+- 只要字符串中包含 `*`，就按 glob 匹配，例如 `foo*`、`*foo`、`*foo*`、`!--wot-*-font-size`
 - `!pattern`：取反（黑名单）
 
 ### `createExcludeMatcher(exclude)`
