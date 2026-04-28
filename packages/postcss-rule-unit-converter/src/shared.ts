@@ -1,4 +1,4 @@
-import type { RuleContext, RuleGroup, UserDefinedOptions } from './types'
+import type { ConversionRule, RuleContext, RuleGroup, UserDefinedOptions } from './types'
 import {
   createConfigGetter,
   createExcludeMatcher,
@@ -40,8 +40,20 @@ export function createAnyUnitRegex() {
   return new RegExp(parts.join('|'), 'g')
 }
 
-export function composeRules(...groups: RuleGroup[]) {
-  return groups.flatMap(group => Array.isArray(group) ? group : [group])
+function isRuleGroupArray(group: RuleGroup): group is readonly ConversionRule[] {
+  return Array.isArray(group)
+}
+
+export function composeRules(...groups: RuleGroup[]): ConversionRule[] {
+  const rules: ConversionRule[] = []
+  for (const group of groups) {
+    if (isRuleGroupArray(group)) {
+      rules.push(...group)
+      continue
+    }
+    rules.push(group)
+  }
+  return rules
 }
 
 export function resolveNumericValue(

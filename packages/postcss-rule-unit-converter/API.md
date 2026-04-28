@@ -25,11 +25,11 @@ interface UserDefinedOptions {
   unitPrecision?: number
   minValue?: number
   keepZeroUnit?: boolean
-  selectorBlackList?: (string | RegExp)[]
-  propList?: (string | RegExp)[]
+  selectorBlackList?: readonly (string | RegExp)[]
+  propList?: readonly (string | RegExp)[]
   replace?: boolean
   mediaQuery?: boolean
-  exclude?: (string | RegExp)[] | ((filePath: string) => boolean)
+  exclude?: readonly (string | RegExp)[] | ((filePath: string) => boolean)
   disabled?: boolean
 }
 ```
@@ -80,6 +80,12 @@ interface ConversionRule {
 
 Rules are evaluated in array order. If multiple rules can match the same source unit, the first matching rule is used.
 
+String unit matchers are trimmed and normalized to lowercase. With the default
+generated regex, a string matcher such as `'px'` matches lowercase `px` in CSS.
+Use a `RegExp` matcher such as `/^px$/i`, or a custom `unitRegex` that captures
+uppercase units, when you need `PX`/`Px` style matches. `rawUnit` still exposes
+the original casing.
+
 ## Transform Callback
 
 ```ts
@@ -119,10 +125,17 @@ interface RuleContext {
 }
 ```
 
-- `fromUnit`: normalized lowercase source unit.
-- `rawUnit`: original matched unit text.
-- `rawValue`: original matched numeric text.
-- `match`: full matched fragment.
+- `fromUnit`: source unit used for rule matching. It is normalized to lowercase
+  when the plugin uses a custom or broad unit regex.
+- `rawUnit`: original matched unit text, preserving source casing such as `PX`.
+- `rawValue`: original matched numeric text before `Number(...)`, such as `.5`.
+- `match`: full matched fragment, such as `.5PX`.
+
+The default generated regex also contains skip alternatives for quoted strings,
+`url(...)`, and `var(...)`. Those alternatives do not provide numeric/unit
+capture groups, so the replacer returns the original text unchanged. If you pass
+`unitRegex`, it replaces the generated regex entirely; include your own skip
+alternatives if you still want strings, URLs, or CSS variables to remain untouched.
 
 ## Helpers
 
@@ -160,11 +173,38 @@ Also exported:
 
 - `ConversionRule`
 - `ConvertedValue`
+- `GlobalUnitTransform`
 - `RuleContext`
 - `RuleGroup`
 - `RuleTransform`
+- `UnitMap`
 - `UnitMatcher`
+- `UnitRule`
+- `UnitTransform`
 - `PostcssUnitConverter`
+
+## `presets.unitsToPx`
+
+```ts
+type UnitMatcher = string | RegExp | ((unit: string) => boolean)
+type UnitTransform = (value: number, context: RuleContext) => number | ConvertedValue | undefined
+type GlobalUnitTransform = (value: number, unit: string, context: RuleContext) => number | ConvertedValue | undefined
+type UnitRule = number | UnitTransform | null | false
+type UnitMap = Record<string, UnitRule> | Map<UnitMatcher, UnitRule> | Array<[UnitMatcher, UnitRule]>
+
+interface UnitMapPresetOptions {
+  minValue?: number
+  unitMap?: UnitMap
+  to?: string
+  transform?: GlobalUnitTransform | false
+}
+```
+
+`presets.unitsToPx()` keeps the default `rem/em/vw/vh/vmin/vmax/rpx -> px`
+map. Object `unitMap` values are merged over those defaults. `Map` and array
+forms preserve user order and do not merge defaults. A unit rule of `false`
+skips that unit; `null` or runtime `undefined` falls back to
+`transform(value, unit, context)`.
 
 ## Built-in Presets
 

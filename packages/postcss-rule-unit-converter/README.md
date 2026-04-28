@@ -70,6 +70,37 @@ Available grouped presets:
 - `presets.viewportPresetGroup()` normalizes `px/rem/rpx` into either `vw` or `vh`
 - `presets.webPresetGroup()` bundles common `px/rem/vw/vh/rpx` web-style conversions
 
+## Migrating From `postcss-units-to-px`
+
+`presets.unitsToPx()` accepts the same `unitMap` shapes used by
+`postcss-units-to-px`:
+
+```ts
+import postcss from 'postcss'
+import unitConverter, { presets } from 'postcss-rule-unit-converter'
+
+const result = await postcss([
+  unitConverter({
+    propList: ['*'],
+    rules: presets.unitsToPx({
+      unitMap: {
+        rem: 16,
+        vw: false,
+        foo: null,
+      },
+      transform(value, unit, context) {
+        return unit === 'foo' && context.prop === 'margin' ? value * 10 : undefined
+      },
+    }),
+  }),
+]).process('.demo{font-size:1rem;width:1vw;margin:2foo}', { from: undefined })
+```
+
+Object `unitMap` values merge over the default `rem/em/vw/vh/vmin/vmax/rpx`
+map. `Map` and array `unitMap` values preserve your matcher order and do not
+merge defaults. Use `false` to skip a unit and `null` to fall back to
+`transform(value, unit, context)`.
+
 ## More Examples
 
 ```ts
@@ -212,7 +243,7 @@ const result = await postcss([
 
 `RuleContext` extends the shared replace context and also exposes:
 
-- `fromUnit`: normalized lowercase source unit
+- `fromUnit`: source unit used for rule matching; it is normalized to lowercase when the plugin uses a custom or broad unit regex
 - `rawUnit`: matched unit text before normalization, for example `PX`
 - `rawValue`: matched numeric text before `Number(...)`, for example `40`
 - `match`: full matched fragment, for example `40PX`
@@ -221,6 +252,12 @@ Advanced matching options:
 
 - `unitRegex`: override the generated matching regex when you need custom parsing behavior such as matching inside `var(...)`
 - `keepZeroUnit`: keep `0px`, `0rem`, or custom zero outputs instead of collapsing them to bare `0`
+
+String unit matchers are trimmed and normalized to lowercase. With the default
+generated regex, `'px'` matches lowercase `px`; use `/^px$/i` or a custom
+`unitRegex` if you need uppercase unit spellings. The default regex skips
+quoted strings, `url(...)`, and `var(...)`; a custom `unitRegex` replaces that
+regex, so include those skip branches yourself if you still need them.
 
 ## Rule Tips
 

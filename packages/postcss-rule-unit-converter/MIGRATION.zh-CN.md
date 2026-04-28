@@ -117,26 +117,42 @@ unitsToPx({
 统一插件写法：
 
 ```ts
-import unitConverter, { composeRules, presets } from 'postcss-rule-unit-converter'
+import unitConverter, { presets } from 'postcss-rule-unit-converter'
 
 unitConverter({
-  rules: composeRules(
-    presets.unitsToPx(),
-    {
-      from: 'vw',
-      to: 'px',
-      factor: 3.75,
+  rules: presets.unitsToPx({
+    unitMap: {
+      rem: 16,
+      vw: 3.75,
+      rpx: 0.5,
     },
-  ),
+  }),
+})
+```
+
+兜底 transform 示例：
+
+```ts
+unitConverter({
+  rules: presets.unitsToPx({
+    unitMap: [
+      [/^q$/, null],
+      ['vw', false],
+    ],
+    transform(value, unit, context) {
+      return unit === 'q' && context.prop === 'margin' ? value * 4 : undefined
+    },
+  }),
 })
 ```
 
 迁移说明：
 
 - `presets.unitsToPx()` 已经覆盖默认的 `rem/em/vw/vh/vmin/vmax/rpx -> px`
-- 自定义 `unitMap` 时，把每个映射项改写成一条 `ConversionRule`
-- 如果老 `unitMap` 依赖命中顺序，就按原顺序写在新的 `rules` 数组里
-- 如果老 `transform` 用来兜底，就把逻辑迁到 `transform(value, context)`
+- 对象形式的 `unitMap` 会覆盖并合并默认值，和 `postcss-units-to-px` 保持一致
+- `Map` 和数组形式的 `unitMap` 会保留用户传入顺序，并且不合并默认值
+- 单个单位规则为 `false` 时跳过该单位
+- 单个单位规则为 `null` 或运行时 `undefined` 时走 `transform(value, unit, context)` 兜底
 
 ## `postcss-pxtrans`
 

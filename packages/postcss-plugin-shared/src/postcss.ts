@@ -91,7 +91,7 @@ export interface WalkAndReplaceOptions {
   unitRegex: RegExp
   propList: readonly (string | RegExp)[]
   selectorBlackList?: readonly (string | RegExp)[]
-  exclude?: (string | RegExp)[] | ((filePath: string) => boolean)
+  exclude?: readonly (string | RegExp)[] | ((filePath: string) => boolean)
   replace?: boolean
   skipDuplicate?: boolean
   mediaQuery?: boolean

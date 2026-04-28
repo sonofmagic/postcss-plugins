@@ -117,26 +117,42 @@ unitsToPx({
 Unified:
 
 ```ts
-import unitConverter, { composeRules, presets } from 'postcss-rule-unit-converter'
+import unitConverter, { presets } from 'postcss-rule-unit-converter'
 
 unitConverter({
-  rules: composeRules(
-    presets.unitsToPx(),
-    {
-      from: 'vw',
-      to: 'px',
-      factor: 3.75,
+  rules: presets.unitsToPx({
+    unitMap: {
+      rem: 16,
+      vw: 3.75,
+      rpx: 0.5,
     },
-  ),
+  }),
+})
+```
+
+Fallback transform example:
+
+```ts
+unitConverter({
+  rules: presets.unitsToPx({
+    unitMap: [
+      [/^q$/, null],
+      ['vw', false],
+    ],
+    transform(value, unit, context) {
+      return unit === 'q' && context.prop === 'margin' ? value * 4 : undefined
+    },
+  }),
 })
 ```
 
 Migration notes:
 
 - `presets.unitsToPx()` covers the default `rem/em/vw/vh/vmin/vmax/rpx -> px` set.
-- For custom unit maps, convert each item into a `ConversionRule`.
-- If old `unitMap` used matcher order, preserve that order in the new `rules` array.
-- If old `transform` handled fallback logic, move that logic into `transform(value, context)`.
+- Object `unitMap` values merge over the defaults, matching `postcss-units-to-px`.
+- `Map` and array `unitMap` values preserve user order and do not merge defaults.
+- A unit rule of `false` skips that unit.
+- A unit rule of `null` or runtime `undefined` falls back to `transform(value, unit, context)`.
 
 ## `postcss-pxtrans`
 

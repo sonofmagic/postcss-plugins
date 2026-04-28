@@ -193,19 +193,20 @@ export function createAdvancedPropListMatcher(propList: readonly string[]) {
  * isExcluded('/project/node_modules/foo.css') // true
  */
 export function createExcludeMatcher(
-  exclude: (string | RegExp)[] | ((filePath: string) => boolean),
+  exclude: readonly (string | RegExp)[] | ((filePath: string) => boolean),
 ) {
   return function isExcluded(filepath: string | undefined) {
     if (filepath === undefined) {
       return false
     }
-    return Array.isArray(exclude)
-      ? exclude.some((rule) => {
-          if (typeof rule === 'string') {
-            return filepath.includes(rule)
-          }
-          return Boolean(filepath.match(rule))
-        })
-      : exclude(filepath)
+    if (typeof exclude === 'function') {
+      return exclude(filepath)
+    }
+    return exclude.some((rule) => {
+      if (typeof rule === 'string') {
+        return filepath.includes(rule)
+      }
+      return Boolean(filepath.match(rule))
+    })
   }
 }

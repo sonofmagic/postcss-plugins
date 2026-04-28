@@ -70,6 +70,35 @@ const result = await postcss([
 - `presets.viewportPresetGroup()` 把 `px/rem/rpx` 归一成单一目标轴的 `vw` 或 `vh`
 - `presets.webPresetGroup()` 提供一组偏 Web 场景的 `px/rem/vw/vh/rpx` 常用规则
 
+## 从 `postcss-units-to-px` 迁移
+
+`presets.unitsToPx()` 支持和 `postcss-units-to-px` 同形状的 `unitMap`：
+
+```ts
+import postcss from 'postcss'
+import unitConverter, { presets } from 'postcss-rule-unit-converter'
+
+const result = await postcss([
+  unitConverter({
+    propList: ['*'],
+    rules: presets.unitsToPx({
+      unitMap: {
+        rem: 16,
+        vw: false,
+        foo: null,
+      },
+      transform(value, unit, context) {
+        return unit === 'foo' && context.prop === 'margin' ? value * 10 : undefined
+      },
+    }),
+  }),
+]).process('.demo{font-size:1rem;width:1vw;margin:2foo}', { from: undefined })
+```
+
+对象形式的 `unitMap` 会覆盖并合并默认的 `rem/em/vw/vh/vmin/vmax/rpx`
+映射。`Map` 和数组形式会保留用户传入顺序，并且不合并默认值。单个单位规则为
+`false` 时跳过该单位；为 `null` 时走 `transform(value, unit, context)` 兜底。
+
 ## 更多示例
 
 ```ts
@@ -196,6 +225,9 @@ const result = await postcss([
 - 如果你要严格控制命中顺序，优先直接写显式规则数组。
 - 使用 `presets.viewportPresetGroup()` 时，建议显式指定 `viewportUnit: 'vw'` 或 `viewportUnit: 'vh'`。
 - 在业务里沉淀可复用 preset 时，优先使用 `definePreset(...)` 和 `definePresetGroup(...)`。
+- `RuleContext.fromUnit` 是用于规则匹配的源单位；`rawUnit` 保留原始大小写；`rawValue` 是 `Number(...)` 前的数字文本；`match` 是完整匹配片段。
+- 字符串单位 matcher 会归一化为小写。默认正则下 `'px'` 匹配小写 `px`；需要匹配 `PX`/`Px` 时使用 `/^px$/i` 或自定义 `unitRegex`。
+- 默认正则会跳过字符串、`url(...)` 和 `var(...)`。自定义 `unitRegex` 会完全替换默认正则；如果仍要跳过这些内容，需要在自定义正则里保留跳过分支。
 - 如果你想直接抄场景配置，优先看 cookbook。
 
 ## Presets

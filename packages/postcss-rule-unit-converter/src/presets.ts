@@ -1,8 +1,13 @@
 import type {
   ConversionRule,
+  GlobalUnitTransform,
   NumericResolver,
   PresetFactory,
   PresetGroupFactory,
+  RuleContext,
+  UnitMap,
+  UnitMatcher,
+  UnitRule,
 } from './types'
 import { resolveNumericValue } from './shared'
 
@@ -39,8 +44,9 @@ export interface RemToViewportHeightPresetOptions extends LinearPresetOptions {
 
 export interface UnitMapPresetOptions {
   minValue?: number
-  unitMap?: Record<string, number>
+  unitMap?: UnitMap
   to?: string
+  transform?: GlobalUnitTransform | false
 }
 
 export interface RpxPresetGroupOptions {
@@ -78,6 +84,128 @@ function createStaticFactorRule(
     to,
     factor,
     ...maybeMinValue(minValue),
+  }
+}
+
+const defaultUnitMap = {
+  rem: 16,
+  em: 16,
+  vw: 3.75,
+  vh: 6.67,
+  vmin: 3.75,
+  vmax: 6.67,
+  rpx: 0.5,
+} satisfies Record<string, number>
+
+interface UnitMapEntry {
+  matcher: UnitMatcher
+  rule: UnitRule | null
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return Object.prototype.toString.call(value) === '[object Object]'
+}
+
+function normalizeUnitRule(rule: UnitRule | undefined) {
+  return rule === undefined ? null : rule
+}
+
+function normalizeUnitMap(unitMap: UnitMap): UnitMapEntry[] {
+  const entries: UnitMapEntry[] = []
+  const addEntry = (matcher: UnitMatcher, rule: UnitRule | undefined) => {
+    if (typeof matcher === 'string') {
+      const unit = matcher.trim().toLowerCase()
+      if (!unit) {
+        return
+      }
+      entries.push({
+        matcher: unit,
+        rule: normalizeUnitRule(rule),
+      })
+      return
+    }
+
+    entries.push({
+      matcher,
+      rule: normalizeUnitRule(rule),
+    })
+  }
+
+  if (Array.isArray(unitMap)) {
+    for (const entry of unitMap) {
+      if (!entry) {
+        continue
+      }
+      const [matcher, rule] = entry
+      addEntry(matcher, rule)
+    }
+    return entries
+  }
+
+  if (unitMap instanceof Map) {
+    for (const [matcher, rule] of unitMap.entries()) {
+      addEntry(matcher, rule)
+    }
+    return entries
+  }
+
+  for (const [matcher, rule] of Object.entries(unitMap)) {
+    addEntry(matcher, rule as UnitRule | undefined)
+  }
+
+  return entries
+}
+
+function resolveUnitMap(unitMap: UnitMap | undefined) {
+  if (unitMap === undefined) {
+    return defaultUnitMap
+  }
+
+  if (isPlainObject(unitMap)) {
+    return {
+      ...defaultUnitMap,
+      ...unitMap,
+    }
+  }
+
+  return unitMap
+}
+
+function createUnitTransformRule(
+  matcher: UnitMatcher,
+  rule: UnitRule | null,
+  to: string,
+  minValue: number | undefined,
+  transform: GlobalUnitTransform | false | undefined,
+): ConversionRule {
+  if (typeof rule === 'number') {
+    return {
+      from: matcher,
+      to,
+      factor: rule,
+      ...maybeMinValue(minValue),
+    }
+  }
+
+  return {
+    from: matcher,
+    to,
+    ...maybeMinValue(minValue),
+    transform(value: number, context: RuleContext) {
+      if (rule === false || transform === false) {
+        return undefined
+      }
+
+      if (typeof rule === 'function') {
+        return rule(value, context)
+      }
+
+      if (transform) {
+        return transform(value, context.fromUnit, context)
+      }
+
+      return undefined
+    },
   }
 }
 
@@ -370,23 +498,21 @@ export function unitsToPx(options: UnitMapPresetOptions = {}): ConversionRule[] 
   const {
     minValue,
     to = 'px',
-    unitMap = {
-      rem: 16,
-      em: 16,
-      vw: 3.75,
-      vh: 6.67,
-      vmin: 3.75,
-      vmax: 6.67,
-      rpx: 0.5,
-    },
+    transform,
+    unitMap,
   } = options
 
-  return Object.entries(unitMap).map(([from, factor]) => ({
-    from,
+  if (transform === false) {
+    return []
+  }
+
+  return normalizeUnitMap(resolveUnitMap(unitMap)).map(entry => createUnitTransformRule(
+    entry.matcher,
+    entry.rule,
     to,
-    factor,
-    ...maybeMinValue(minValue),
-  }))
+    minValue,
+    transform,
+  ))
 }
 
 /**

@@ -1,5 +1,6 @@
-import postcss from 'postcss'
+import type { ConversionRule, UnitMatcher, UnitRule } from '../src/index'
 
+import postcss from 'postcss'
 import unitConverter, {
   composeRules,
   definePreset,
@@ -7,6 +8,20 @@ import unitConverter, {
   presets,
   resolveNumericValue,
 } from '../src/index'
+
+type IsAny<T> = 0 extends (1 & T) ? true : false
+type IsEqual<TActual, TExpected> = (<T>() => T extends TActual ? 1 : 2) extends
+(<T>() => T extends TExpected ? 1 : 2)
+  ? true
+  : false
+type Expect<T extends true> = T
+
+const presetA = () => presets.unitsToPx()
+const presetB = () => presets.remToPx()
+const _composedRulesTypeCheck = composeRules(presetA(), [presetB()])
+type ComposedRulesType = typeof _composedRulesTypeCheck
+type _ComposedRulesElementIsNotAny = Expect<IsEqual<IsAny<ComposedRulesType[number]>, false>>
+type _ComposedRulesReturnType = Expect<IsEqual<ComposedRulesType, ConversionRule[]>>
 
 describe('postcss-rule-unit-converter', () => {
   it('converts with custom rules', () => {
@@ -30,6 +45,63 @@ describe('postcss-rule-unit-converter', () => {
     })).process(input).css
 
     expect(processed).toBe(output)
+  })
+
+  it('supports postcss-units-to-px style object unit maps', () => {
+    expect(presets.unitsToPx({ transform: false })).toEqual([])
+
+    const input = '.rule { a: 1rem; b: 1vw; c: 1vh; d: 2foo; e: 3bar; f: 4baz; }'
+    const output = '.rule { a: 10px; b: 1vw; c: 6.67px; d: 10px; e: 6em; f: 20px; }'
+    const processed = postcss(unitConverter({
+      rules: presets.unitsToPx({
+        unitMap: {
+          rem: 10,
+          vw: false,
+          foo: null,
+          bar: (value, context) => context.prop === 'e'
+            ? { value: value * 2, unit: 'em' }
+            : { value: value * 2 },
+          baz: undefined as any,
+        },
+        transform(value, unit, context) {
+          return context.fromUnit === unit ? value * 5 : undefined
+        },
+      }),
+      propList: ['*'],
+      unitPrecision: 2,
+    })).process(input).css
+
+    expect(processed).toBe(output)
+  })
+
+  it('preserves Map and Array unit map order without merging defaults', () => {
+    const input = '.rule { width: 1rem; height: 2foo; margin: 3bar; padding: 4baz; }'
+    const output = '.rule { width: 1rem; height: 4px; margin: 9px; padding: 4baz; }'
+    const processed = postcss(unitConverter({
+      rules: presets.unitsToPx({
+        unitMap: [
+          [/^foo$/, 2],
+          [unit => unit === 'bar', value => value * 3],
+        ],
+      }),
+      propList: ['*'],
+    })).process(input).css
+
+    expect(processed).toBe(output)
+
+    const orderedInput = '.rule { width: 2foo; }'
+    const orderedOutput = '.rule { width: 4px; }'
+    const orderedProcessed = postcss(unitConverter({
+      rules: presets.unitsToPx({
+        unitMap: new Map<UnitMatcher, UnitRule>([
+          [/^foo$/, 2],
+          ['foo', 10],
+        ]),
+      }),
+      propList: ['*'],
+    })).process(orderedInput).css
+
+    expect(orderedProcessed).toBe(orderedOutput)
   })
 
   it('supports dynamic preset values based on input file', () => {

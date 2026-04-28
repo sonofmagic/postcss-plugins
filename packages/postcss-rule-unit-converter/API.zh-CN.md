@@ -25,11 +25,11 @@ interface UserDefinedOptions {
   unitPrecision?: number
   minValue?: number
   keepZeroUnit?: boolean
-  selectorBlackList?: (string | RegExp)[]
-  propList?: (string | RegExp)[]
+  selectorBlackList?: readonly (string | RegExp)[]
+  propList?: readonly (string | RegExp)[]
   replace?: boolean
   mediaQuery?: boolean
-  exclude?: (string | RegExp)[] | ((filePath: string) => boolean)
+  exclude?: readonly (string | RegExp)[] | ((filePath: string) => boolean)
   disabled?: boolean
 }
 ```
@@ -80,6 +80,11 @@ interface ConversionRule {
 
 规则按数组顺序执行。如果多条规则都能命中同一个源单位，只有第一条会生效。
 
+字符串单位 matcher 会先 trim 并归一化为小写。使用默认自动生成的正则时，
+`'px'` 这类字符串 matcher 匹配 CSS 中的小写 `px`。如果需要匹配 `PX`/`Px`
+这类大小写形式，请使用 `/^px$/i` 这样的正则 matcher，或传入能捕获大写单位的
+自定义 `unitRegex`。原始大小写仍可通过 `rawUnit` 读取。
+
 ## transform 回调
 
 ```ts
@@ -119,10 +124,15 @@ interface RuleContext {
 }
 ```
 
-- `fromUnit`：归一化后的小写源单位。
-- `rawUnit`：原始匹配到的单位文本。
-- `rawValue`：原始匹配到的数字文本。
-- `match`：完整匹配片段。
+- `fromUnit`：用于规则匹配的源单位。插件使用自定义或宽泛单位正则时会归一化为小写。
+- `rawUnit`：原始匹配到的单位文本，会保留 `PX` 这类大小写。
+- `rawValue`：`Number(...)` 之前的原始数字文本，例如 `.5`。
+- `match`：完整匹配片段，例如 `.5PX`。
+
+默认自动生成的正则还包含对字符串、`url(...)` 和 `var(...)` 的跳过分支。
+这些分支不会提供数字 / 单位捕获组，因此 replacer 会原样返回。传入
+`unitRegex` 时会完全替换默认正则；如果仍希望跳过字符串、URL 或 CSS 变量，
+需要在自定义正则里保留对应跳过分支。
 
 ## 辅助函数
 
@@ -160,11 +170,37 @@ type PresetGroupFactory<TOptions extends PresetOptions = undefined> = (
 
 - `ConversionRule`
 - `ConvertedValue`
+- `GlobalUnitTransform`
 - `RuleContext`
 - `RuleGroup`
 - `RuleTransform`
+- `UnitMap`
 - `UnitMatcher`
+- `UnitRule`
+- `UnitTransform`
 - `PostcssUnitConverter`
+
+## `presets.unitsToPx`
+
+```ts
+type UnitMatcher = string | RegExp | ((unit: string) => boolean)
+type UnitTransform = (value: number, context: RuleContext) => number | ConvertedValue | undefined
+type GlobalUnitTransform = (value: number, unit: string, context: RuleContext) => number | ConvertedValue | undefined
+type UnitRule = number | UnitTransform | null | false
+type UnitMap = Record<string, UnitRule> | Map<UnitMatcher, UnitRule> | Array<[UnitMatcher, UnitRule]>
+
+interface UnitMapPresetOptions {
+  minValue?: number
+  unitMap?: UnitMap
+  to?: string
+  transform?: GlobalUnitTransform | false
+}
+```
+
+`presets.unitsToPx()` 保留默认的 `rem/em/vw/vh/vmin/vmax/rpx -> px` 映射。
+对象形式的 `unitMap` 会覆盖并合并默认值；`Map` 和数组形式会保留用户传入顺序，
+并且不合并默认值。单个单位规则为 `false` 时跳过该单位；为 `null` 或运行时
+`undefined` 时走 `transform(value, unit, context)` 兜底。
 
 ## 内置 Preset
 

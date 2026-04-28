@@ -25,12 +25,39 @@ export interface ConvertedValue {
 }
 
 /**
- * Callback-based conversion rule.
+ * Per-unit conversion callback used by `presets.unitsToPx`.
  */
-export type RuleTransform = (
+export type UnitTransform = (
   value: number,
   context: RuleContext,
 ) => number | ConvertedValue | undefined
+
+/**
+ * Fallback conversion callback used by `presets.unitsToPx`.
+ */
+export type GlobalUnitTransform = (
+  value: number,
+  unit: string,
+  context: RuleContext,
+) => number | ConvertedValue | undefined
+
+/**
+ * Per-unit conversion rule used by `presets.unitsToPx`.
+ */
+export type UnitRule = number | UnitTransform | null | false
+
+/**
+ * Per-unit conversion map used by `presets.unitsToPx`.
+ */
+export type UnitMap
+  = Record<string, UnitRule>
+    | Map<UnitMatcher, UnitRule>
+    | Array<[UnitMatcher, UnitRule]>
+
+/**
+ * Callback-based conversion rule.
+ */
+export type RuleTransform = UnitTransform
 
 /**
  * Single conversion rule.
@@ -69,15 +96,15 @@ export interface UserDefinedOptions {
   unitPrecision?: number
   minValue?: number
   keepZeroUnit?: boolean
-  selectorBlackList?: (string | RegExp)[]
+  selectorBlackList?: readonly (string | RegExp)[]
   /**
    * Supports negated string entries like `!font-size`, `!padding*`,
    * or glob patterns such as `!--wot-*-font-size`.
    */
-  propList?: (string | RegExp)[]
+  propList?: readonly (string | RegExp)[]
   replace?: boolean
   mediaQuery?: boolean
-  exclude?: (string | RegExp)[] | ((filePath: string) => boolean)
+  exclude?: readonly (string | RegExp)[] | ((filePath: string) => boolean)
   disabled?: boolean
 }
 
