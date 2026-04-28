@@ -1,5 +1,11 @@
 # postcss-plugin-shared
 
+## 1.1.5
+
+### Patch Changes
+
+- 🐛 **Improve unit converter preset migration types and readonly option compatibility.** [`74f5130`](https://github.com/sonofmagic/postcss-plugins/commit/74f5130baf76547aa9eb2d7a22a00b996017f3b8) by @sonofmagic
+
 ## 1.1.4
 
 ### Patch Changes
