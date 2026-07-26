@@ -1,5 +1,11 @@
 # postcss-rem-to-viewport
 
+## 2.0.5
+
+### Patch Changes
+
+- 🐛 **Fix CommonJS plugin entries so `require()` returns a callable PostCSS plugin while preserving the default and named exports.** [#44](https://github.com/sonofmagic/postcss-plugins/pull/44) by @sonofmagic
+
 ## 2.0.4
 
 ### Patch Changes
