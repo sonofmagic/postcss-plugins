@@ -1,5 +1,11 @@
 # postcss-rule-unit-converter
 
+## 0.2.3
+
+### Patch Changes
+
+- 🐛 **Fix CommonJS plugin entries so `require()` returns a callable PostCSS plugin while preserving the default and named exports.** [#44](https://github.com/sonofmagic/postcss-plugins/pull/44) by @sonofmagic
+
 ## 0.2.2
 
 ### Patch Changes
