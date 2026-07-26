@@ -27,10 +27,10 @@
     ".": {
       "types": {
         "import": "./dist/index.d.mts",
-        "require": "./dist/index.d.cts"
+        "require": "./dist/index.require.d.cts"
       },
       "import": "./dist/index.mjs",
-      "require": "./dist/index.cjs"
+      "require": "./dist/index.require.cjs"
     },
     "./defaults": {
       "types": {
@@ -41,7 +41,7 @@
       "require": "./dist/defaults.cjs"
     }
   },
-  "main": "./dist/index.cjs",
+  "main": "./dist/index.require.cjs",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.mts",
   "files": [
