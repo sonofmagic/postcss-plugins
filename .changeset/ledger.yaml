@@ -2,6 +2,10 @@ postcss-plugin-shared@1.1.6:
   dir: packages/postcss-plugin-shared
   intents:
     - stable-plugin-conversions
+postcss-plugin-shared@1.1.7:
+  dir: packages/postcss-plugin-shared
+  intents:
+    - sour-poets-kiss
 postcss-pxtrans@1.0.5:
   dir: packages/postcss-pxtrans
   intents:
