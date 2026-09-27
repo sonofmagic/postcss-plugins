@@ -225,6 +225,12 @@ isExcluded('/a/src/vendor.css') // true
 
 Checks whether a rule already contains the same declaration (commonly used to avoid duplicates when `replace: false` and `cloneAfter` is used).
 
+### `walkAndReplaceValues(options)`
+
+With the default `replace: true`, every matched declaration is converted in place, even if the same property and converted value already exist. Declaration order and `!important` are preserved; this function does not remove duplicate declarations.
+
+`skipDuplicate` defaults to `true` and only controls insertion when `replace: false`: it prevents adding an existing property/value pair while retaining the source declaration. Set `skipDuplicate: false` to insert the converted declaration even when that pair already exists.
+
 `decls` only needs a `.some(...)` method that iterates PostCSS `ChildNode`s (usually a `Rule`).
 
 ```ts

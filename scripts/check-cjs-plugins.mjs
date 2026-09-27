@@ -31,6 +31,12 @@ const cases = [
     output: '.a{font-size:16px}',
   },
   {
+    name: 'postcss-rem-to-responsive-pixel',
+    create: plugin => plugin({ rootValue: 32, transformUnit: 'rpx', propList: ['*'] }),
+    input: '.a{--spacing:8rpx;--spacing:2rem;--spacing:.25rem}',
+    output: '.a{--spacing:8rpx;--spacing:64rpx;--spacing:8rpx}',
+  },
+  {
     name: 'postcss-rem-to-viewport',
     create: plugin => plugin(),
     input: '.a{font-size:1rem}',
@@ -132,6 +138,8 @@ async function main() {
       const packageDir = join(fixture, 'node_modules', item.name)
       const esm = await import(pathToFileURL(join(packageDir, 'dist', 'index.mjs')).href)
       assert.equal(typeof esm.default, 'function', `${item.name} ESM default must be callable`)
+      const esmResult = await postcss([item.create(esm.default)]).process(item.input, { from: undefined })
+      assert.equal(esmResult.css, item.output, `${item.name} ESM plugin output changed`)
       console.log(`${item.name} ESM: ok`)
     }
 

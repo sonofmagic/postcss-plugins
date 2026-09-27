@@ -468,12 +468,13 @@ describe('postcss-plugin-shared', () => {
       expect(root.toString()).toBe('.rule{width:2px}')
     })
 
-    it('skips duplicate declarations when enabled', () => {
+    it('skips duplicate insertions when replace is false', () => {
       const root = postcss.parse('.rule{width:1rem;width:2px}')
       walkAndReplaceValues({
         root,
         unitRegex,
         propList: ['*'],
+        replace: false,
         createReplacer: () => (_m, value) => `${Number(value) * 2}px`,
       })
 

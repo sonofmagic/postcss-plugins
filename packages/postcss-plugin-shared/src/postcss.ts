@@ -93,6 +93,7 @@ export interface WalkAndReplaceOptions {
   selectorBlackList?: readonly (string | RegExp)[]
   exclude?: readonly (string | RegExp)[] | ((filePath: string) => boolean)
   replace?: boolean
+  /** 仅在 replace:false 时跳过已存在的转换结果；替换模式始终更新当前声明。 */
   skipDuplicate?: boolean
   mediaQuery?: boolean
   createReplacer: (context: ReplaceContext) => (m: string, $1?: string) => string
@@ -271,7 +272,7 @@ export function walkAndReplaceValues(options: WalkAndReplaceOptions) {
       }
 
       const index = getDeclarationIndex(parent ?? root)
-      if (skipDuplicate && index && hasDeclaration(index, decl.prop, nextValue)) {
+      if (!replace && skipDuplicate && index && hasDeclaration(index, decl.prop, nextValue)) {
         return
       }
 
