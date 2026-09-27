@@ -1,5 +1,13 @@
 # postcss-pxtrans
 
+## 1.0.6
+
+### Patch Changes
+
+- Updated dependencies:
+  - postcss-plugin-shared@1.1.7
+  - postcss-rule-unit-converter@0.2.5
+
 ## 1.0.5
 
 ### Patch Changes
