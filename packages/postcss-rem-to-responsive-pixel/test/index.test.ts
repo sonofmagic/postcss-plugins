@@ -56,16 +56,17 @@ describe('remToPx', () => {
     expect(processed).toBe(expected)
   })
 
-  it('should not add properties that already exist', () => {
+  it('should not add properties that already exist when replace is false', () => {
     const expected = '.rule { font-size: 1rem; font-size: 16px; }'
-    const processed = postcss(remToPx()).process(expected).css
+    const processed = postcss(remToPx({ replace: false })).process(expected).css
 
     expect(processed).toBe(expected)
   })
 
   it('should remain unitless if 0', () => {
-    const expected = '.rule { font-size: 0rem; font-size: 0; }'
-    const processed = postcss(remToPx()).process(expected).css
+    const input = '.rule { font-size: 0rem; font-size: 0; }'
+    const expected = '.rule { font-size: 0; font-size: 0; }'
+    const processed = postcss(remToPx()).process(input).css
 
     expect(processed).toBe(expected)
   })

@@ -31,9 +31,9 @@ describe('pxTransform basics', () => {
     expect(processed).toBe(expected)
   })
 
-  it('should not add properties that already exist', () => {
+  it('should not add properties that already exist when replace is false', () => {
     const expected = '.rule { font-size: 40px; font-size: 1rem; }'
-    const processed = transform(expected, { platform: 'h5', designWidth: 750 })
+    const processed = transform(expected, { platform: 'h5', designWidth: 750, replace: false })
     expect(processed).toBe(expected)
   })
 
@@ -218,7 +218,7 @@ describe('additional coverage', () => {
 
   it('should ignore non-decl nodes in declarationExists', () => {
     const css = '.rule{/*c*/font-size:16px;font-size:0.468rem;}'
-    const processed = transform(css, { platform: 'h5', designWidth: 640 })
+    const processed = transform(css, { platform: 'h5', designWidth: 640, replace: false })
     expect(processed).toBe(css)
   })
 })

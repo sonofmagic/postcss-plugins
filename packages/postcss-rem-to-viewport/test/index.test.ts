@@ -64,8 +64,9 @@ describe('remToVw', () => {
   })
 
   it('should remain unitless if 0', () => {
-    const expected = '.rule { font-size: 0rem; font-size: 0; }'
-    const processed = postcss(remToVw()).process(expected).css
+    const input = '.rule { font-size: 0rem; font-size: 0; }'
+    const expected = '.rule { font-size: 0; font-size: 0; }'
+    const processed = postcss(remToVw()).process(input).css
 
     expect(processed).toBe(expected)
   })

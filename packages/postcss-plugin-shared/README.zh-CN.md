@@ -166,3 +166,9 @@ const re = createUnitRegex({ units: ['px', 'rpx'], ignoreCase: true })
 ### `declarationExists(decls, prop, value)`
 
 用于避免在同一个规则中生成重复声明（常用于 `replace: false` 时 `cloneAfter` 的去重判断）。
+
+### `walkAndReplaceValues(options)`
+
+默认 `replace: true` 会原位转换每条命中的声明，即使已存在相同属性和转换后值。声明顺序和 `!important` 保持不变；此函数不删除重复声明。
+
+`skipDuplicate` 默认为 `true`，仅控制 `replace: false` 时的插入行为：保留原声明，已有相同属性和值时不再插入。设置 `skipDuplicate: false` 后，即使已存在相同属性和值，仍插入转换后的声明。
